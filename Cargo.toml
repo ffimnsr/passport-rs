@@ -1,0 +1,17 @@
+[package]
+name = "passport"
+version = "1.1.0"
+authors = ["ffimnsr <ffimnsr@gmail.com>"]
+edition = "2018"
+publish = false
+
+[dependencies]
+actix-web = "1.0"
+dotenv = "0.14"
+serde = "1.0"
+serde_json = "1.0"
+futures = "0.1"
+log = "0.4"
+env_logger = "0.6"
+r2d2 = "0.8"
+chrono = {version = "0.4", features = ["serde"]}
