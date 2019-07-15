@@ -1,14 +1,13 @@
-use juniper::{Context, FieldResult, RootNode};
+use actix::prelude::*;
+use juniper::{FieldResult, RootNode};
+use super::model::Repo;
 
-#[derive(juniper::GraphQLEnum, Clone, Copy)]
-pub enum Episode {
-    Empire,
-    Jedi,
+#[derive(Clone)]
+pub struct Context {
+    pub repo: Addr<Repo>,
 }
 
-pub struct Database(pub Episode);
-
-impl Context for Database {}
+impl juniper::Context for Context {}
 
 #[derive(juniper::GraphQLObject)]
 #[graphql(description = "A structure that defines project industry")]
@@ -27,9 +26,13 @@ struct NewIndustry {
 
 pub struct Query;
 
-#[juniper::object(Context = Database)]
+#[juniper::object(Context = Context)]
 impl Query {
-    fn industries(context: &Database) -> FieldResult<Industry> {
+    fn api_version() -> &str {
+        "1.0"
+    }
+
+    fn industries(context: &Context) -> FieldResult<Industry> {
         Ok(Industry {
             id: 1234,
             name: "Sample".to_owned(),
@@ -38,7 +41,7 @@ impl Query {
     }
 
     #[graphql(arguments(id(description = "The id of the industry")))]
-    fn industry(context: &Database, id: i32) -> FieldResult<Industry> {
+    fn industry(context: &Context, id: i32) -> FieldResult<Industry> {
         Ok(Industry {
             id: 1234,
             name: "Sample".to_owned(),
@@ -49,9 +52,9 @@ impl Query {
 
 pub struct Mutation;
 
-#[juniper::object(Context = Database)]
+#[juniper::object(Context = Context)]
 impl Mutation {
-    fn createIndustry(context: &Database, new_industry: NewIndustry) -> FieldResult<Industry> {
+    fn createIndustry(context: &Context, new_industry: NewIndustry) -> FieldResult<Industry> {
         Ok(Industry {
             id: 1234,
             name: new_industry.name,
@@ -63,5 +66,5 @@ impl Mutation {
 pub type Schema = RootNode<'static, Query, Mutation>;
 
 pub fn create_schema() -> Schema {
-    Schema::new(Query, Mutation)
+    Schema::new(Query {}, Mutation {})
 }

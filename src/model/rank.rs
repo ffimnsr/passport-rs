@@ -1,11 +1,11 @@
 use serde::{Serialize, Deserialize};
-use chrono::{DateTime, Utc};
+use chrono::NaiveDateTime;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Rank {
     pub id: i32,
     pub name: String,
-    pub status: i8,
-    pub inserted_at: DateTime<Utc>,
-    pub updated_at: DateTime<Utc>,
+    pub status: i32,
+    pub inserted_at: NaiveDateTime,
+    pub updated_at: NaiveDateTime,
 }

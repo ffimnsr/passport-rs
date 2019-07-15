@@ -1,5 +1,5 @@
 use serde::{Serialize, Deserialize};
-use chrono::{DateTime, Utc};
+use chrono::NaiveDateTime;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Country {
@@ -8,7 +8,7 @@ pub struct Country {
     pub code: String,
     pub idd_code: String,
     pub currency: String,
-    pub status: String,
-    pub inserted_at: DateTime<Utc>,
-    pub updated_at: DateTime<Utc>,
+    pub status: i32,
+    pub inserted_at: NaiveDateTime,
+    pub updated_at: NaiveDateTime,
 }

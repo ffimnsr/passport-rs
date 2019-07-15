@@ -1,5 +1,5 @@
 use serde::{Serialize, Deserialize};
-use chrono::{NaiveDate, DateTime, Utc};
+use chrono::{NaiveDate, NaiveDateTime};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct User {
@@ -7,8 +7,8 @@ pub struct User {
     pub email: String,
     pub email_confirmed: bool,
     pub password_hash: String,
-    pub inserted_at: DateTime<Utc>,
-    pub updated_at: DateTime<Utc>,
+    pub inserted_at: NaiveDateTime,
+    pub updated_at: NaiveDateTime,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -23,8 +23,8 @@ pub struct UserClue {
     pub mobile_number: String,
     pub gender: String,
     pub birth_date: NaiveDate,
-    pub inserted_at: DateTime<Utc>,
-    pub updated_at: DateTime<Utc>,
+    pub inserted_at: NaiveDateTime,
+    pub updated_at: NaiveDateTime,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -36,8 +36,8 @@ pub struct UserBankAccount {
     pub bank_address: String,
     pub bank_branch: String,
     pub swift_code: String,
-    pub inserted_at: DateTime<Utc>,
-    pub updated_at: DateTime<Utc>,
+    pub inserted_at: NaiveDateTime,
+    pub updated_at: NaiveDateTime,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -48,8 +48,8 @@ pub struct UserIdentity {
     pub account_id: String,
     pub provider: String,
     pub public_profile_url: String,
-    pub inserted_at: DateTime<Utc>,
-    pub updated_at: DateTime<Utc>,
+    pub inserted_at: NaiveDateTime,
+    pub updated_at: NaiveDateTime,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -62,8 +62,8 @@ pub struct UserWorkExperience {
     pub from_date: NaiveDate,
     pub to_date: NaiveDate,
     pub description: String,
-    pub inserted_at: DateTime<Utc>,
-    pub updated_at: DateTime<Utc>,
+    pub inserted_at: NaiveDateTime,
+    pub updated_at: NaiveDateTime,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -72,7 +72,7 @@ pub struct UserWorkPreference {
     pub user_id: i32,
     pub interests: i32,
     pub project_limit: String,
-    pub project_limit_updated_at: DateTime<Utc>,
-    pub inserted_at: DateTime<Utc>,
-    pub updated_at: DateTime<Utc>,
+    pub project_limit_updated_at: NaiveDateTime,
+    pub inserted_at: NaiveDateTime,
+    pub updated_at: NaiveDateTime,
 }

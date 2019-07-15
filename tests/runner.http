@@ -4,6 +4,10 @@
 
 ###
 
+GET :base-url/
+
+###
+
 POST :base-url/
 Content-Type: application/json
 

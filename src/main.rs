@@ -1,15 +1,36 @@
-use std::{env, io, sync::Arc};
+use std::sync::Arc;
+use std::{env, io};
 
-use actix_web::{middleware, web, App, Error, HttpResponse, HttpServer};
+use actix::prelude::*;
+use actix_web::http::StatusCode;
+use actix_web::{guard, middleware, web, App, Error, HttpResponse, HttpServer};
 use dotenv::dotenv;
 use futures::future::Future;
 use juniper::http::{graphiql::graphiql_source, GraphQLRequest};
 use log::info;
+use r2d2_sqlite::SqliteConnectionManager;
 
 mod model;
 mod schema;
 
-use crate::schema::{create_schema, Database, Episode, Schema};
+use crate::model::{Pool, Repo};
+use crate::schema::{create_schema, Context, Schema};
+
+struct AppState {
+    executor: GraphQLExecutor,
+}
+
+#[derive(Clone)]
+struct GraphQLExecutor {
+    schema: Arc<Schema>,
+    context: Context,
+}
+
+impl GraphQLExecutor {
+    fn new(schema: Arc<Schema>, context: Context) -> GraphQLExecutor {
+        GraphQLExecutor { schema, context }
+    }
+}
 
 fn graphiql() -> HttpResponse {
     let html = graphiql_source("/graphql");
@@ -19,21 +40,29 @@ fn graphiql() -> HttpResponse {
 }
 
 fn graphql(
-    st: web::Data<Arc<Schema>>,
+    st: web::Data<AppState>,
     data: web::Json<GraphQLRequest>,
 ) -> impl Future<Item = HttpResponse, Error = Error> {
     web::block(move || {
-        let ctx = Database(Episode::Jedi);
-
-        let res = data.execute(&st, &ctx);
+        let res = data.execute(&st.executor.schema, &st.executor.context);
         Ok::<_, serde_json::error::Error>(serde_json::to_string(&res)?)
     })
     .map_err(Error::from)
-    .and_then(|user| {
+    .and_then(|out| {
         Ok(HttpResponse::Ok()
             .content_type("application/json; charset=utf-8")
-            .body(user))
+            .json(out))
     })
+}
+
+fn error_404() -> HttpResponse {
+    let data = serde_json::json!({
+        "message": "404 Page Not Found",
+    });
+
+    HttpResponse::build(StatusCode::NOT_FOUND)
+        .content_type("application/json; charset=utf-8")
+        .json(data)
 }
 
 fn main() -> io::Result<()> {
@@ -42,30 +71,67 @@ fn main() -> io::Result<()> {
     env::set_var("RUST_LOG", "passport=debug");
     env_logger::init();
 
-    let addr = "127.0.0.1:8080";
+    let sys = actix::System::new("passport");
+
+    let manager = SqliteConnectionManager::file("passport.db");
+    let pool = Pool::new(manager).unwrap();
+
+    let addr: String = env::var("HOST_ADDR").unwrap_or("127.0.0.1:8080".to_owned());
     info!("Booting up server at {}", addr);
 
+    let repo_addr = SyncArbiter::start(3, move || Repo(pool.clone()));
+
+    let schema_context = Context {
+        repo: repo_addr.clone(),
+    };
     let schema = Arc::new(create_schema());
 
     let app = move || {
         App::new()
-            .data(schema.clone())
-            .wrap(middleware::Logger::default())
+            .data(AppState {
+                executor: GraphQLExecutor::new(schema.clone(), schema_context.clone()),
+            })
             .data(web::JsonConfig::default().limit(4096))
+            .wrap(middleware::Logger::default())
             .service(web::resource("/graphql").route(web::post().to_async(graphql)))
             .service(web::resource("/graphiql").route(web::get().to(graphiql)))
+            .default_service(
+                web::resource("").route(web::get().to(error_404)).route(
+                    web::route()
+                        .guard(guard::Not(guard::Get()))
+                        .to(|| HttpResponse::MethodNotAllowed()),
+                ),
+            )
     };
 
     HttpServer::new(app)
         .bind(addr)
         .expect("Failed to bind to port 8080")
-        .run()
+        .start();
+
+    sys.run()
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use actix_web::test;
 
     #[test]
-    fn index_get() {}
+    fn test_error_404_ok() {
+        let res = test::block_on(error_404()).unwrap();
+        assert_eq!(res.status(), StatusCode::NOT_FOUND);
+    }
+
+    #[test]
+    fn test_graphiql_ok() {
+        let res = test::block_on(graphiql()).unwrap();
+        assert_eq!(res.status(), StatusCode::OK);
+    }
+
+    #[test]
+    fn test_graphiql_not_ok() {
+        let res = test::block_on(graphiql()).unwrap();
+        assert_ne!(res.status(), StatusCode::BAD_REQUEST);
+    }
 }
