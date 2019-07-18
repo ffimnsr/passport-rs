@@ -10,6 +10,6 @@ pub struct AskQuestion {
     pub amount: i32,
     pub reference_no: String,
     pub approved_at: NaiveDateTime,
-    pub inserted_at: NaiveDateTime,
+    pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
 }

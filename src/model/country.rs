@@ -9,6 +9,6 @@ pub struct Country {
     pub idd_code: String,
     pub currency: String,
     pub status: i32,
-    pub inserted_at: NaiveDateTime,
+    pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
 }

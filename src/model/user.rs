@@ -7,7 +7,7 @@ pub struct User {
     pub email: String,
     pub email_confirmed: bool,
     pub password_hash: String,
-    pub inserted_at: NaiveDateTime,
+    pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
 }
 
@@ -23,7 +23,7 @@ pub struct UserClue {
     pub mobile_number: String,
     pub gender: String,
     pub birth_date: NaiveDate,
-    pub inserted_at: NaiveDateTime,
+    pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
 }
 
@@ -36,7 +36,7 @@ pub struct UserBankAccount {
     pub bank_address: String,
     pub bank_branch: String,
     pub swift_code: String,
-    pub inserted_at: NaiveDateTime,
+    pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
 }
 
@@ -48,7 +48,7 @@ pub struct UserIdentity {
     pub account_id: String,
     pub provider: String,
     pub public_profile_url: String,
-    pub inserted_at: NaiveDateTime,
+    pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
 }
 
@@ -62,7 +62,7 @@ pub struct UserWorkExperience {
     pub from_date: NaiveDate,
     pub to_date: NaiveDate,
     pub description: String,
-    pub inserted_at: NaiveDateTime,
+    pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
 }
 
@@ -71,8 +71,8 @@ pub struct UserWorkPreference {
     pub id: i32,
     pub user_id: i32,
     pub interests: i32,
-    pub project_limit: String,
+    pub project_limit: i32,
     pub project_limit_updated_at: NaiveDateTime,
-    pub inserted_at: NaiveDateTime,
+    pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
 }

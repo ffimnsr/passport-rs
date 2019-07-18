@@ -1,0 +1,24 @@
+{
+   "type": "postgres",
+   "host": "john.db.elephantsql.com",
+   "port": 5432,
+   "username": "dbmlndjo",
+   "password": "JTOV-DdVTl2wkX9TM1t4G-suaXzbk07M",
+   "database": "dbmlndjo",
+   "synchronize": true,
+   "logging": false,
+   "entities": [
+      "src/entity/**/*.ts"
+   ],
+   "migrations": [
+      "src/migration/**/*.ts"
+   ],
+   "subscribers": [
+      "src/subscriber/**/*.ts"
+   ],
+   "cli": {
+      "entitiesDir": "src/entity",
+      "migrationsDir": "src/migration",
+      "subscribersDir": "src/subscriber"
+   }
+}

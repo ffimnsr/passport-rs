@@ -17,3 +17,5 @@ pub mod rank;
 pub mod user;
 pub mod withdrawal_request;
 pub mod work_function;
+
+pub use industry::Industry;

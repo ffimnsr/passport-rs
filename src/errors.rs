@@ -1,6 +1,6 @@
-use std::convert::From;
+// use std::convert::From;
 use actix_web::{error::ResponseError, HttpResponse};
-use uuid::ParseError;
+use failure::Fail;
 
 #[derive(Fail, Debug)]
 pub enum ServiceError {
@@ -21,11 +21,5 @@ impl ResponseError for ServiceError {
             ServiceError::BadRequest(ref message) => HttpResponse::BadRequest().json(message),
             ServiceError::Unauthorized => HttpResponse::Unauthorized().json("Unauthorized"),
         }
-    }
-}
-
-impl From<ParseError> for ServiceError {
-    fn from(_: ParseError) -> ServiceError {
-        ServiceError::BadRequest("Invalid UUID".into())
     }
 }

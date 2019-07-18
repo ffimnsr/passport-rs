@@ -1,5 +1,8 @@
 use std::sync::Arc;
-use std::{env, io};
+use std::{env, io, net};
+
+#[cfg(target_family="unix")]
+use std::os::unix::io::FromRawFd;
 
 use actix::prelude::*;
 use actix_web::http::StatusCode;
@@ -51,7 +54,7 @@ fn graphql(
     .and_then(|out| {
         Ok(HttpResponse::Ok()
             .content_type("application/json; charset=utf-8")
-            .json(out))
+            .body(out))
     })
 }
 
@@ -76,9 +79,16 @@ fn main() -> io::Result<()> {
     let manager = SqliteConnectionManager::file("passport.db");
     let pool = Pool::new(manager).unwrap();
 
-    let addr: String = env::var("HOST_ADDR").unwrap_or("127.0.0.1:8080".to_owned());
-    info!("Booting up server at {}", addr);
-
+    let fd = env::var("LISTEN_FD").ok()
+        .and_then(|d| d.parse().ok())
+        .expect("No provided FD");
+    info!("Booting up server at FD {}", fd);
+    
+    let mut listener: net::TcpListener;
+    unsafe {
+        listener = net::TcpListener::from_raw_fd(fd);            
+    }
+    
     let repo_addr = SyncArbiter::start(3, move || Repo(pool.clone()));
 
     let schema_context = Context {
@@ -99,14 +109,14 @@ fn main() -> io::Result<()> {
                 web::resource("").route(web::get().to(error_404)).route(
                     web::route()
                         .guard(guard::Not(guard::Get()))
-                        .to(|| HttpResponse::MethodNotAllowed()),
+                        .to(HttpResponse::MethodNotAllowed),
                 ),
             )
     };
-
+    
     HttpServer::new(app)
-        .bind(addr)
-        .expect("Failed to bind to port 8080")
+        .listen(listener)
+        .expect("Failed to bind FD")
         .start();
 
     sys.run()

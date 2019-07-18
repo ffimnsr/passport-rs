@@ -10,7 +10,7 @@ pub struct Project {
     pub start_date: NaiveDate,
     pub end_date: NaiveDate,
     pub status: i32,
-    pub inserted_at: NaiveDateTime,
+    pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
 }
 
@@ -22,7 +22,7 @@ pub struct ProjectClue {
     pub repo_http_url: String,
     pub repo_ssh_url: String,
     pub repo_web_url: String,
-    pub inserted_at: NaiveDateTime,
+    pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
 }
 
@@ -33,7 +33,7 @@ pub struct ProjectMember {
     pub talent_id: i32,
     pub start_date: NaiveDate,
     pub end_date: NaiveDate,
-    pub inserted_at: NaiveDateTime,
+    pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
 }
 
@@ -49,6 +49,6 @@ pub struct ProjectIssue {
     pub reported_by: NaiveDateTime,
     pub priority: i32,
     pub status: i32,
-    pub inserted_at: NaiveDateTime,
+    pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
 }
