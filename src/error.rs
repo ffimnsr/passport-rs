@@ -1,4 +1,3 @@
-// use std::convert::From;
 use actix_web::{error::ResponseError, HttpResponse};
 use failure::Fail;
 

@@ -50,12 +50,12 @@ fn graphql(
         let res = data.execute(&st.executor.schema, &st.executor.context);
         Ok::<_, serde_json::error::Error>(serde_json::to_string(&res)?)
     })
-    .map_err(Error::from)
-    .and_then(|out| {
-        Ok(HttpResponse::Ok()
-            .content_type("application/json; charset=utf-8")
-            .body(out))
-    })
+        .map_err(Error::from)
+        .and_then(|out| {
+            Ok(HttpResponse::Ok()
+               .content_type("application/json; charset=utf-8")
+               .body(out))
+        })
 }
 
 fn error_404() -> HttpResponse {
