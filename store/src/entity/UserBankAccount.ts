@@ -1,9 +1,16 @@
-import {Entity, PrimaryGeneratedColumn, Column, JoinColumn, OneToOne} from "typeorm";
-import {User} from "./User";
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  JoinColumn,
+  OneToOne
+} from "typeorm";
+import { User } from "./User";
 
 @Entity()
 export class UserBankAccount {
-
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -13,7 +20,7 @@ export class UserBankAccount {
 
   @Column()
   accountName: string;
-  
+
   @Column()
   accountNo: string;
 
@@ -26,10 +33,9 @@ export class UserBankAccount {
   @Column()
   swiftCode: string;
 
-  @Column()
+  @CreateDateColumn()
   createdAt: Date;
 
-  @Column()
-  updatedAt: Date;  
+  @UpdateDateColumn()
+  updatedAt: Date;
 }
-

@@ -1,10 +1,10 @@
 {
    "type": "postgres",
-   "host": "john.db.elephantsql.com",
+   "host": "localhost",
    "port": 5432,
-   "username": "dbmlndjo",
-   "password": "JTOV-DdVTl2wkX9TM1t4G-suaXzbk07M",
-   "database": "dbmlndjo",
+   "username": "pastel",
+   "password": "",
+   "database": "passport",
    "synchronize": true,
    "logging": false,
    "entities": [

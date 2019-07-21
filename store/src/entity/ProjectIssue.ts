@@ -7,35 +7,44 @@ import {
   JoinColumn,
   OneToOne
 } from "typeorm";
+import { Project } from "./Project";
 import { User } from "./User";
 
 @Entity()
-export class UserWorkExperience {
+export class ProjectIssue {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @OneToOne(type => Project)
+  @JoinColumn()
+  project: Project;
+
   @OneToOne(type => User)
   @JoinColumn()
-  user: User;
+  assignedTo: User;
+
+  @OneToOne(type => User)
+  @JoinColumn()
+  reportedBy: User;
 
   @Column()
-  title: string;
+  code: string;
 
-  @Column()
-  organization: string;
-
-  @Column()
-  location: string;
-
-  @Column()
-  fromDate: string;
-
-  @Column()
-  toDate: string;
-
-  @Column()
+  @Column("text")
   description: string;
+  
+  @Column("date")
+  assignedAt: Date;
 
+  @Column("date")
+  reportedAt: Date;
+
+  @Column()
+  priority: number;
+
+  @Column()
+  status: number;
+  
   @CreateDateColumn()
   createdAt: Date;
 

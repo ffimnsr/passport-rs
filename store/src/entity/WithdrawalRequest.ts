@@ -10,25 +10,29 @@ import {
 import { User } from "./User";
 
 @Entity()
-export class UserIdentity {
+export class WithdrawalRequest {
   @PrimaryGeneratedColumn()
   id: number;
 
   @OneToOne(type => User)
   @JoinColumn()
-  user: User;
+  requestedById: User;
+
+  @OneToOne(type => User)
+  @JoinColumn()
+  approvedById: User;
 
   @Column()
-  accountEmail: string;
+  bankAccountNo: number;
 
   @Column()
-  accountId: string;
+  amount: number;
 
   @Column()
-  provider: string;
+  reference: string;
 
   @Column()
-  publicProfileUrl: string;
+  approvedAt: Date;
 
   @CreateDateColumn()
   createdAt: Date;

@@ -1,9 +1,9 @@
 {
-  "name": "new-typeorm-project",
+  "name": "passport-store",
   "version": "0.0.1",
-  "description": "Awesome project developed with TypeORM.",
+  "description": "Passport Storage",
   "scripts": {
-    "sync": "./node_modules/.bin/ts-node ./node_modules/.bin/typeorm shema:sync"
+    "sync": "./node_modules/.bin/ts-node ./node_modules/.bin/typeorm schema:sync"
   },
   "devDependencies": {
     "ts-node": "3.3.0",
@@ -14,9 +14,6 @@
     "pg": "^7.11.0",
     "reflect-metadata": "^0.1.10",
     "typeorm": "0.2.18"
-  },
-  "scripts": {
-    "start": "ts-node src/index.ts"
   },
   "private": true
 }

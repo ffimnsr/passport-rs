@@ -1,7 +1,8 @@
+use std::str::FromStr;
 use std::sync::Arc;
 use std::{env, io, net};
 
-#[cfg(target_family="unix")]
+#[cfg(target_family = "unix")]
 use std::os::unix::io::FromRawFd;
 
 use actix::prelude::*;
@@ -11,12 +12,13 @@ use dotenv::dotenv;
 use futures::future::Future;
 use juniper::http::{graphiql::graphiql_source, GraphQLRequest};
 use log::info;
-use r2d2_sqlite::SqliteConnectionManager;
+use postgres::{config::Config, NoTls};
+use r2d2_postgres::PostgresConnectionManager;
 
 mod model;
 mod schema;
 
-use crate::model::{Pool, Repo};
+use crate::model::Repo;
 use crate::schema::{create_schema, Context, Schema};
 
 struct AppState {
@@ -50,12 +52,12 @@ fn graphql(
         let res = data.execute(&st.executor.schema, &st.executor.context);
         Ok::<_, serde_json::error::Error>(serde_json::to_string(&res)?)
     })
-        .map_err(Error::from)
-        .and_then(|out| {
-            Ok(HttpResponse::Ok()
-               .content_type("application/json; charset=utf-8")
-               .body(out))
-        })
+    .map_err(Error::from)
+    .and_then(|out| {
+        Ok(HttpResponse::Ok()
+            .content_type("application/json; charset=utf-8")
+            .body(out))
+    })
 }
 
 fn error_404() -> HttpResponse {
@@ -76,19 +78,25 @@ fn main() -> io::Result<()> {
 
     let sys = actix::System::new("passport");
 
-    let manager = SqliteConnectionManager::file("passport.db");
-    let pool = Pool::new(manager).unwrap();
+    let config = Config::from_str("postgresql://pastel@localhost/passport").unwrap();
+    let manager = PostgresConnectionManager::new(config, NoTls);
 
-    let fd = env::var("LISTEN_FD").ok()
+    let pool = r2d2::Pool::builder()
+        .build(manager)
+        .unwrap();
+
+    let fd = env::var("LISTEN_FD")
+        .ok()
         .and_then(|d| d.parse().ok())
         .expect("No provided FD");
-    info!("Booting up server at FD {}", fd);
     
+    info!("Booting up server at FD {}", fd);
+
     let mut listener: net::TcpListener;
     unsafe {
-        listener = net::TcpListener::from_raw_fd(fd);            
+        listener = net::TcpListener::from_raw_fd(fd);
     }
-    
+
     let repo_addr = SyncArbiter::start(3, move || Repo(pool.clone()));
 
     let schema_context = Context {
@@ -113,7 +121,7 @@ fn main() -> io::Result<()> {
                 ),
             )
     };
-    
+
     HttpServer::new(app)
         .listen(listener)
         .expect("Failed to bind FD")

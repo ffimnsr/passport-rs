@@ -1,9 +1,16 @@
-import {Entity, PrimaryGeneratedColumn, Column, JoinColumn, OneToOne} from "typeorm";
-import {User} from "./User";
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  JoinColumn,
+  OneToOne
+} from "typeorm";
+import { User } from "./User";
 
 @Entity()
 export class UserClue {
-
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -13,7 +20,7 @@ export class UserClue {
 
   @Column()
   firstName: string;
-  
+
   @Column()
   middleName: string;
 
@@ -29,13 +36,12 @@ export class UserClue {
   @Column()
   gender: string;
 
-  @Column()
-  birthDate: string;
+  @Column("date")
+  birthDate: Date;
 
-  @Column()
+  @CreateDateColumn()
   createdAt: Date;
 
-  @Column()
-  updatedAt: Date;  
+  @UpdateDateColumn()
+  updatedAt: Date;
 }
-

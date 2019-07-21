@@ -3,32 +3,28 @@ import {
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
-  UpdateDateColumn,
-  JoinColumn,
-  OneToOne
+  UpdateDateColumn
 } from "typeorm";
-import { User } from "./User";
 
 @Entity()
-export class UserIdentity {
+export class Country {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @OneToOne(type => User)
-  @JoinColumn()
-  user: User;
+  @Column()
+  name: string;
 
   @Column()
-  accountEmail: string;
+  code: string;
 
   @Column()
-  accountId: string;
+  idd_code: string;
 
   @Column()
-  provider: string;
+  currency: string;
 
   @Column()
-  publicProfileUrl: string;
+  status: number;
 
   @CreateDateColumn()
   createdAt: Date;

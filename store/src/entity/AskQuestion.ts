@@ -7,15 +7,15 @@ import {
 } from "typeorm";
 
 @Entity()
-export class Industry {
+export class AskQuestion {
   @PrimaryGeneratedColumn()
   id: number;
 
   @Column()
-  name: string;
+  question: string;
 
   @Column()
-  status: number;
+  answer: string;
 
   @CreateDateColumn()
   createdAt: Date;

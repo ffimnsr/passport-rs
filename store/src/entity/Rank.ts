@@ -7,7 +7,7 @@ import {
 } from "typeorm";
 
 @Entity()
-export class Industry {
+export class Rank {
   @PrimaryGeneratedColumn()
   id: number;
 

@@ -1,9 +1,7 @@
 use actix::prelude::*;
-use juniper::{FieldResult, FieldError, RootNode};
-use chrono::NaiveDateTime;
-use serde::{Serialize, Deserialize};
+use juniper::{FieldError, FieldResult, RootNode};
 
-use super::model::Repo;
+use super::model::{Repo, Industry};
 
 #[derive(Clone)]
 pub struct Context {
@@ -11,60 +9,6 @@ pub struct Context {
 }
 
 impl juniper::Context for Context {}
-
-#[derive(juniper::GraphQLObject, Serialize, Deserialize, Debug)]
-#[graphql(description = "A structure that defines project industry")]
-pub struct Industry {
-    id: i32,
-    name: String,
-    status: i32,
-    inserted_at: NaiveDateTime,
-    updated_at: NaiveDateTime,
-}
-
-impl Industry {
-    pub fn with_id(id: i32) -> Industry {
-        let mut model = Industry::default();
-        model.id = id;
-        model
-    }
-}
-
-impl Default for Industry {
-    fn default() -> Industry {
-        Industry {
-            id: 0,
-            name: "".to_owned(),
-            status: 0,
-            inserted_at: NaiveDateTime::from_timestamp(0, 0),
-            updated_at: NaiveDateTime::from_timestamp(0, 0),
-        }
-    }
-}
-
-// impl<A, M> MessageResponse<A, M> for Industry
-// where
-//     A: Actor,
-//     M: Message<Result = Industry>,
-// {
-//     fn handle<R: ResponseChannel<M>>(self, _: &mut A::Context, tx: Option<R>) {
-//         if let Some(tx) = tx {
-//             tx.send(self)
-//         }
-//     }
-// }
-
-impl Message for Industry {
-    type Result = FieldResult<Industry>;
-}
-
-impl Handler<Industry> for Repo {
-    type Result = FieldResult<Industry>;
-
-    fn handle(&mut self, _msg: Industry, _ctx: &mut Self::Context) -> Self::Result {
-        Ok(Industry::with_id(3))
-    }
-}
 
 #[derive(juniper::GraphQLInputObject)]
 #[graphql(description = "A structure that defines project industry")]
@@ -81,20 +25,20 @@ impl Query {
         "1.0"
     }
 
-    fn industries(context: &Context) -> FieldResult<Industry> {        
+    fn industries(context: &Context) -> FieldResult<Industry> {
         Ok(Industry::default())
     }
 
     #[graphql(arguments(id(description = "The id of the industry")))]
     fn industry(context: &Context, id: i32) -> FieldResult<Industry> {
-        context.repo
+        context
+            .repo
             .send(Industry::with_id(1))
             .map_err(FieldError::from)
-            .and_then(|res| { res })
+            .and_then(|res| res)
             .wait()
     }
 }
-
 
 pub struct Mutation;
 

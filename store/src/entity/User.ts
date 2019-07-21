@@ -1,8 +1,13 @@
-import {Entity, PrimaryGeneratedColumn, Column} from "typeorm";
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn
+} from "typeorm";
 
 @Entity()
 export class User {
-
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -10,14 +15,14 @@ export class User {
   email: string;
 
   @Column()
-  emailConfirmed: boolean;  
-  
+  emailConfirmed: boolean;
+
   @Column()
   passwordHash: string;
 
-  @Column()
+  @CreateDateColumn()
   createdAt: Date;
 
-  @Column()
-  updatedAt: Date;  
+  @UpdateDateColumn()
+  updatedAt: Date;
 }

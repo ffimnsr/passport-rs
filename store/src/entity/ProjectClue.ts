@@ -7,29 +7,29 @@ import {
   JoinColumn,
   OneToOne
 } from "typeorm";
-import { User } from "./User";
+import { Project } from "./Project";
 
 @Entity()
-export class UserIdentity {
+export class ProjectClue {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @OneToOne(type => User)
+  @OneToOne(type => Project)
   @JoinColumn()
-  user: User;
+  project: Project;
+
+  @Column("text")
+  description: string;
 
   @Column()
-  accountEmail: string;
+  repoHttpUrl: string;
 
   @Column()
-  accountId: string;
+  repoSshUrl: string;
 
   @Column()
-  provider: string;
-
-  @Column()
-  publicProfileUrl: string;
-
+  repoWebUrl: string;
+  
   @CreateDateColumn()
   createdAt: Date;
 

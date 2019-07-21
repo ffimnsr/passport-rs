@@ -1,8 +1,8 @@
-use serde::{Serialize, Deserialize};
 use chrono::NaiveDateTime;
+use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct AskQuestion {
+pub struct WithdrawalRequest {
     pub id: i32,
     pub requested_by_id: i32,
     pub approved_by_id: i32,

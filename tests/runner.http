@@ -1,6 +1,6 @@
 # -*- mode: restclient -*-
 
-:base-url = http://localhost:8080
+:base-url = http://localhost:5000
 
 ###
 
@@ -12,9 +12,4 @@ POST :base-url/
 Content-Type: application/json
 
 {
-  "id": 1,
-  "name": "industry",
-  "status": 0
 }
-
-###

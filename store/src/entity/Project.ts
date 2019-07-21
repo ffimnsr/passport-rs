@@ -10,25 +10,28 @@ import {
 import { User } from "./User";
 
 @Entity()
-export class UserIdentity {
+export class Project {
   @PrimaryGeneratedColumn()
   id: number;
 
   @OneToOne(type => User)
   @JoinColumn()
-  user: User;
+  employer: User;
 
   @Column()
-  accountEmail: string;
+  code: string;
 
   @Column()
-  accountId: string;
+  name: string;
 
   @Column()
-  provider: string;
+  startDate: Date;
 
   @Column()
-  publicProfileUrl: string;
+  endDate: Date;
+  
+  @Column()
+  status: number;
 
   @CreateDateColumn()
   createdAt: Date;

@@ -7,7 +7,7 @@ import {
 } from "typeorm";
 
 @Entity()
-export class Industry {
+export class WorkFunction {
   @PrimaryGeneratedColumn()
   id: number;
 

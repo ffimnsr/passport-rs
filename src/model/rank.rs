@@ -1,5 +1,5 @@
-use serde::{Serialize, Deserialize};
 use chrono::NaiveDateTime;
+use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Rank {
