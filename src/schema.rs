@@ -1,7 +1,7 @@
 use actix::prelude::*;
 use juniper::{FieldError, FieldResult, RootNode};
 
-use super::model::{Repo, Industry, Industries};
+use super::model::{Industries, Industry, Repo};
 
 #[derive(Clone)]
 pub struct Context {
@@ -41,7 +41,7 @@ impl Query {
             .send(Industry::with_id(1))
             .map_err(FieldError::from)
             .and_then(|res| res)
-            .wait()        
+            .wait()
     }
 }
 

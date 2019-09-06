@@ -2,11 +2,11 @@ use std::convert::From;
 
 use actix::prelude::*;
 use chrono::NaiveDateTime;
-use serde::{Deserialize, Serialize};
 use juniper::{FieldResult, GraphQLObject};
 use postgres::row::Row;
+use serde::{Deserialize, Serialize};
 
-use super::{Repo, Connection};
+use super::{Connection, Repo};
 
 #[derive(GraphQLObject, Serialize, Deserialize, Debug, Clone)]
 pub struct AskQuestion {
