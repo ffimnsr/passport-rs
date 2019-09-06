@@ -1,7 +1,14 @@
+use std::convert::From;
+
+use actix::prelude::*;
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
+use juniper::{FieldResult, GraphQLObject};
+use postgres::row::Row;
 
-#[derive(Serialize, Deserialize, Debug)]
+use super::{Repo, Connection};
+
+#[derive(GraphQLObject, Serialize, Deserialize, Debug)]
 pub struct WithdrawalRequest {
     pub id: i32,
     pub requested_by_id: i32,

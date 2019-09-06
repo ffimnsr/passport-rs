@@ -22,7 +22,7 @@ pub mod work_function;
 
 pub use ask_question::AskQuestion;
 pub use country::Country;
-pub use industry::Industry;
+pub use industry::{Industry, Industries};
 pub use project::Project;
 pub use rank::Rank;
 pub use user::User;

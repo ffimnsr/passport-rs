@@ -78,18 +78,18 @@ fn main() -> io::Result<()> {
 
     let sys = actix::System::new("passport");
 
-    let config = Config::from_str("postgresql://pastel@localhost/passport").unwrap();
+    let config_url =
+        env::var("DATABASE_URL").unwrap_or_else(|_| "postgresql://pastel@localhost/passport".to_owned());
+    let config = Config::from_str(&config_url).unwrap();
     let manager = PostgresConnectionManager::new(config, NoTls);
 
-    let pool = r2d2::Pool::builder()
-        .build(manager)
-        .unwrap();
+    let pool = r2d2::Pool::builder().build(manager).unwrap();
 
     let fd = env::var("LISTEN_FD")
         .ok()
         .and_then(|d| d.parse().ok())
         .expect("No provided FD");
-    
+
     info!("Booting up server at FD {}", fd);
 
     let mut listener: net::TcpListener;

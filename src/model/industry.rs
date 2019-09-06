@@ -1,4 +1,5 @@
 use std::convert::From;
+
 use actix::prelude::*;
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
@@ -7,7 +8,7 @@ use postgres::row::Row;
 
 use super::{Repo, Connection};
 
-#[derive(GraphQLObject, Serialize, Deserialize, Debug)]
+#[derive(GraphQLObject, Serialize, Deserialize, Debug, Clone)]
 #[graphql(description = "A structure that defines project industry")]
 pub struct Industry {
     pub id: i32,
@@ -15,14 +16,6 @@ pub struct Industry {
     pub status: i32,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
-}
-
-impl Industry {
-    pub fn with_id(id: i32) -> Self {
-        let mut model = Self::default();
-        model.id = id;
-        model
-    }
 }
 
 impl Default for Industry {
@@ -37,6 +30,14 @@ impl Default for Industry {
     }
 }
 
+impl Industry {
+    pub fn with_id(id: i32) -> Self {
+        let mut model = Self::default();
+        model.id = id;
+        model
+    }
+}
+
 impl Message for Industry {
     type Result = FieldResult<Industry>;
 }
@@ -47,8 +48,8 @@ impl From<Row> for Industry {
             id: row.get(0),
             name: row.get(1),
             status: row.get(2),
-            created_at: NaiveDateTime::parse_from_str(row.get(3), "%Y-%m-%d %H:%M:%S%.f").unwrap(),
-            updated_at: NaiveDateTime::parse_from_str(row.get(4), "%Y-%m-%d %H:%M:%S%.f").unwrap(),            
+            created_at: row.get(3),
+            updated_at: row.get(4),
         }
     }
 }
@@ -59,8 +60,8 @@ impl From<&Row> for Industry {
             id: row.get(0),
             name: row.get(1),
             status: row.get(2),
-            created_at: NaiveDateTime::parse_from_str(row.get(3), "%Y-%m-%d %H:%M:%S%.f").unwrap(),
-            updated_at: NaiveDateTime::parse_from_str(row.get(4), "%Y-%m-%d %H:%M:%S%.f").unwrap(),            
+            created_at: row.get(3),
+            updated_at: row.get(4),
         }
     }
 }
@@ -70,11 +71,14 @@ impl Handler<Industry> for Repo {
 
     fn handle(&mut self, _msg: Industry, _ctx: &mut Self::Context) -> Self::Result {
         let client: &mut Connection = &mut self.0.get().unwrap();
-
         let rows: Vec<Row> = client.query("SELECT * FROM public.industry", &[]).unwrap();
-        let _results = rows.iter().map(Industry::from).collect::<Vec<Industry>>();
+        let results: Vec<Industry> = rows.iter().map(Industry::from).collect::<Vec<Industry>>();
 
-        Ok(Industry::default())
+        if results.is_empty() {
+            Ok(Industry::default())
+        } else {
+            Ok(results[0].clone())
+        }
     }
 }
 
@@ -82,4 +86,16 @@ pub struct Industries;
 
 impl Message for Industries {
     type Result = FieldResult<Vec<Industry>>;
+}
+
+impl Handler<Industries> for Repo {
+    type Result = FieldResult<Vec<Industry>>;
+
+    fn handle(&mut self, _msg: Industries, _ctx: &mut Self::Context) -> Self::Result {
+        let client: &mut Connection = &mut self.0.get().unwrap();
+        let rows: Vec<Row> = client.query("SELECT * FROM public.industry", &[]).unwrap();
+        let results: Vec<Industry> = rows.iter().map(Industry::from).collect::<Vec<Industry>>();
+
+        Ok(results.clone())
+    }
 }

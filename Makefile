@@ -10,8 +10,8 @@ run.only:
 
 .PHONY: check
 check:
-	@catflap -h 0.0.0.0 -p 5000 -- cargo watch -x clippy -x check
+	@cargo watch -x clippy -x check
 
 .PHONY: check.only
 check.only:
-	@catflap -h 127.0.0.1 -p 5000 -- cargo watch -x check
+	@cargo watch -x check

@@ -1,7 +1,7 @@
 use actix::prelude::*;
 use juniper::{FieldError, FieldResult, RootNode};
 
-use super::model::{Repo, Industry};
+use super::model::{Repo, Industry, Industries};
 
 #[derive(Clone)]
 pub struct Context {
@@ -25,8 +25,13 @@ impl Query {
         "1.0"
     }
 
-    fn industries(context: &Context) -> FieldResult<Industry> {
-        Ok(Industry::default())
+    fn industries(context: &Context) -> FieldResult<Vec<Industry>> {
+        context
+            .repo
+            .send(Industries)
+            .map_err(FieldError::from)
+            .and_then(|res| res)
+            .wait()
     }
 
     #[graphql(arguments(id(description = "The id of the industry")))]
@@ -36,7 +41,7 @@ impl Query {
             .send(Industry::with_id(1))
             .map_err(FieldError::from)
             .and_then(|res| res)
-            .wait()
+            .wait()        
     }
 }
 
