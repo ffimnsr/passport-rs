@@ -31,6 +31,7 @@ impl Default for Rank {
 }
 
 impl Rank {
+    #[allow(dead_code)]
     pub fn with_id(id: i32) -> Self {
         let mut model = Self::default();
         model.id = id;

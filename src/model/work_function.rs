@@ -30,6 +30,7 @@ impl Default for WorkFunction {
 }
 
 impl WorkFunction {
+    #[allow(dead_code)]
     pub fn with_id(id: i32) -> Self {
         let mut model = Self::default();
         model.id = id;

@@ -79,7 +79,9 @@ fn main() -> io::Result<()> {
     let sys = actix::System::new("passport");
 
     let config_url =
-        env::var("DATABASE_URL").unwrap_or_else(|_| "postgresql://pastel@localhost/passport".to_owned());
+        env::var("DATABASE_URL")
+        .unwrap_or_else(|_| "postgresql://postgres:postgres@localhost/passport".to_owned());
+
     let config = Config::from_str(&config_url).unwrap();
     let manager = PostgresConnectionManager::new(config, NoTls);
 
@@ -92,7 +94,7 @@ fn main() -> io::Result<()> {
 
     info!("Booting up server at FD {}", fd);
 
-    let mut listener: net::TcpListener;
+    let listener: net::TcpListener;
     unsafe {
         listener = net::TcpListener::from_raw_fd(fd);
     }

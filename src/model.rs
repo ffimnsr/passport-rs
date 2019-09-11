@@ -20,11 +20,11 @@ pub mod user;
 pub mod withdrawal_request;
 pub mod work_function;
 
-pub use ask_question::AskQuestion;
-pub use country::Country;
+pub use ask_question::{AskQuestions, AskQuestion};
+pub use country::{Countries, Country};
 pub use industry::{Industries, Industry};
-pub use project::Project;
-pub use rank::Rank;
+pub use project::{Project};
+pub use rank::{Ranks, Rank};
 pub use user::User;
-pub use withdrawal_request::WithdrawalRequest;
-pub use work_function::WorkFunction;
+pub use withdrawal_request::{WithdrawalRequest};
+pub use work_function::{WorkFunctions, WorkFunction};

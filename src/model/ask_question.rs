@@ -30,6 +30,7 @@ impl Default for AskQuestion {
 }
 
 impl AskQuestion {
+    #[allow(dead_code)]
     pub fn with_id(id: i32) -> Self {
         let mut model = Self::default();
         model.id = id;
