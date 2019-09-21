@@ -29,7 +29,7 @@ impl Default for WithdrawalRequest {
             approved_by_id: 0,
             bank_account_id: 0,
             amount: 0,
-            reference_no: "".to_owned(),
+            reference_no: String::new(),
             approved_at: NaiveDateTime::from_timestamp(0, 0),
             created_at: NaiveDateTime::from_timestamp(0, 0),
             updated_at: NaiveDateTime::from_timestamp(0, 0),
@@ -67,7 +67,7 @@ impl From<Row> for WithdrawalRequest {
 }
 
 impl From<&Row> for WithdrawalRequest {
-    fn from(row: Row) -> Self {
+    fn from(row: &Row) -> Self {
         Self {
             id: row.get(0),
             requested_by_id: row.get(1),
@@ -85,5 +85,37 @@ impl From<&Row> for WithdrawalRequest {
 impl Handler<WithdrawalRequest> for Repo {
     type Result = FieldResult<WithdrawalRequest>;
 
-    fn handle()
+    fn handle(&mut self, _msg: WithdrawalRequest, _ctx: &mut Self::Context) -> Self::Result {
+        let client: &mut Connection = &mut self.0.get().unwrap();
+        let rows: Vec<Row> = client.query("SELECT * FROM public.withdrawal_requests", &[]).unwrap();
+        let results: Vec<WithdrawalRequest> = rows.iter()
+            .map(WithdrawalRequest::from)
+            .collect::<Vec<WithdrawalRequest>>();
+
+        if results.is_empty() {
+            Ok(WithdrawalRequest::default())
+        } else {
+            Ok(results[0].clone())
+        }
+    }
+}
+
+pub struct WithdrawalRequests;
+
+impl Message for WithdrawalRequests {
+    type Result = FieldResult<Vec<WithdrawalRequest>>;
+}
+
+impl Handler<WithdrawalRequests> for Repo {
+    type Result = FieldResult<Vec<WithdrawalRequest>>;
+
+    fn handle(&mut self, _msg: WithdrawalRequests, _ctx: &mut Self::Context) -> Self::Result {
+        let client: &mut Connection = &mut self.0.get().unwrap();
+        let rows: Vec<Row> = client.query("SELECT * FROM public.withdrawal_requests", &[]).unwrap();
+        let results: Vec<WithdrawalRequest> = rows.iter()
+            .map(WithdrawalRequest::from)
+            .collect::<Vec<WithdrawalRequest>>();
+
+        Ok(results.clone())
+    }
 }

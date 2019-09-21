@@ -24,10 +24,10 @@ impl Default for Country {
     fn default() -> Self {
         Self {
             id: 0,
-            name: "".to_owned(),
-            code: "".to_owned(),
-            idd_code: "".to_owned(),
-            currency: "".to_owned(),
+            name: String::new(),
+            code: String::new(),
+            idd_code: String::new(),
+            currency: String::new(),
             status: 0,
             created_at: NaiveDateTime::from_timestamp(0, 0),
             updated_at: NaiveDateTime::from_timestamp(0, 0),
@@ -83,8 +83,10 @@ impl Handler<Country> for Repo {
 
     fn handle(&mut self, _msg: Country, _ctx: &mut Self::Context) -> Self::Result {
         let client: &mut Connection = &mut self.0.get().unwrap();
-        let rows: Vec<Row> = client.query("SELECT * FROM public.country", &[]).unwrap();
-        let results: Vec<Country> = rows.iter().map(Country::from).collect::<Vec<Country>>();
+        let rows: Vec<Row> = client.query("SELECT * FROM public.countries", &[]).unwrap();
+        let results: Vec<Country> = rows.iter()
+            .map(Country::from)
+            .collect::<Vec<Country>>();
 
         if results.is_empty() {
             Ok(Country::default())
@@ -105,8 +107,10 @@ impl Handler<Countries> for Repo {
 
     fn handle(&mut self, _msg: Countries, _ctx: &mut Self::Context) -> Self::Result {
         let client: &mut Connection = &mut self.0.get().unwrap();
-        let rows: Vec<Row> = client.query("SELECT * FROM public.country", &[]).unwrap();
-        let results: Vec<Country> = rows.iter().map(Country::from).collect::<Vec<Country>>();
+        let rows: Vec<Row> = client.query("SELECT * FROM public.countries", &[]).unwrap();
+        let results: Vec<Country> = rows.iter()
+            .map(Country::from)
+            .collect::<Vec<Country>>();
 
         Ok(results.clone())
     }

@@ -21,7 +21,7 @@ impl Default for WorkFunction {
     fn default() -> Self {
         Self {
             id: 0,
-            name: "".to_owned(),
+            name: String::new(),
             status: 0,
             created_at: NaiveDateTime::from_timestamp(0, 0),
             updated_at: NaiveDateTime::from_timestamp(0, 0),
@@ -71,8 +71,10 @@ impl Handler<WorkFunction> for Repo {
 
     fn handle(&mut self, _msg: WorkFunction, _ctx: &mut Self::Context) -> Self::Result {
         let client: &mut Connection = &mut self.0.get().unwrap();
-        let rows: Vec<Row> = client.query("SELECT * FROM public.work_function", &[]).unwrap();
-        let results: Vec<WorkFunction> = rows.iter().map(WorkFunction::from).collect::<Vec<WorkFunction>>();
+        let rows: Vec<Row> = client.query("SELECT * FROM public.work_functions", &[]).unwrap();
+        let results: Vec<WorkFunction> = rows.iter()
+            .map(WorkFunction::from)
+            .collect::<Vec<WorkFunction>>();
 
         if results.is_empty() {
             Ok(WorkFunction::default())
@@ -93,8 +95,10 @@ impl Handler<WorkFunctions> for Repo {
 
     fn handle(&mut self, _msg: WorkFunctions, _ctx: &mut Self::Context) -> Self::Result {
         let client: &mut Connection = &mut self.0.get().unwrap();
-        let rows: Vec<Row> = client.query("SELECT * FROM public.work_function", &[]).unwrap();
-        let results: Vec<WorkFunction> = rows.iter().map(WorkFunction::from).collect::<Vec<WorkFunction>>();
+        let rows: Vec<Row> = client.query("SELECT * FROM public.work_functions", &[]).unwrap();
+        let results: Vec<WorkFunction> = rows.iter()
+            .map(WorkFunction::from)
+            .collect::<Vec<WorkFunction>>();
 
         Ok(results.clone())
     }

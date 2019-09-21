@@ -1,3 +1,4 @@
+/.trigger
 /target
 **/*.rs.bk
 /passport.db
