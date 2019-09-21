@@ -22,7 +22,7 @@ impl Default for Industry {
     fn default() -> Self {
         Self {
             id: 0,
-            name: "".to_owned(),
+            name: String::new(),
             status: 0,
             created_at: NaiveDateTime::from_timestamp(0, 0),
             updated_at: NaiveDateTime::from_timestamp(0, 0),
@@ -71,8 +71,10 @@ impl Handler<Industry> for Repo {
 
     fn handle(&mut self, _msg: Industry, _ctx: &mut Self::Context) -> Self::Result {
         let client: &mut Connection = &mut self.0.get().unwrap();
-        let rows: Vec<Row> = client.query("SELECT * FROM public.industry", &[]).unwrap();
-        let results: Vec<Industry> = rows.iter().map(Industry::from).collect::<Vec<Industry>>();
+        let rows: Vec<Row> = client.query("SELECT * FROM public.industries", &[]).unwrap();
+        let results: Vec<Industry> = rows.iter()
+            .map(Industry::from)
+            .collect::<Vec<Industry>>();
 
         if results.is_empty() {
             Ok(Industry::default())
@@ -93,8 +95,10 @@ impl Handler<Industries> for Repo {
 
     fn handle(&mut self, _msg: Industries, _ctx: &mut Self::Context) -> Self::Result {
         let client: &mut Connection = &mut self.0.get().unwrap();
-        let rows: Vec<Row> = client.query("SELECT * FROM public.industry", &[]).unwrap();
-        let results: Vec<Industry> = rows.iter().map(Industry::from).collect::<Vec<Industry>>();
+        let rows: Vec<Row> = client.query("SELECT * FROM public.industries", &[]).unwrap();
+        let results: Vec<Industry> = rows.iter()
+            .map(Industry::from)
+            .collect::<Vec<Industry>>();
 
         Ok(results.clone())
     }

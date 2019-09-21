@@ -21,8 +21,8 @@ impl Default for AskQuestion {
     fn default() -> Self {
         Self {
             id: 0,
-            question: "".to_owned(),
-            answer: "".to_owned(),
+            question: String::new(),
+            answer: String::new(),
             created_at: NaiveDateTime::from_timestamp(0, 0),
             updated_at: NaiveDateTime::from_timestamp(0, 0),
         }
@@ -71,8 +71,10 @@ impl Handler<AskQuestion> for Repo {
 
     fn handle(&mut self, _msg: AskQuestion, _ctx: &mut Self::Context) -> Self::Result {
         let client: &mut Connection = &mut self.0.get().unwrap();
-        let rows: Vec<Row> = client.query("SELECT * FROM public.ask_question", &[]).unwrap();
-        let results: Vec<AskQuestion> = rows.iter().map(AskQuestion::from).collect::<Vec<AskQuestion>>();
+        let rows: Vec<Row> = client.query("SELECT * FROM public.ask_questions", &[]).unwrap();
+        let results: Vec<AskQuestion> = rows.iter()
+            .map(AskQuestion::from)
+            .collect::<Vec<AskQuestion>>();
 
         if results.is_empty() {
             Ok(AskQuestion::default())
@@ -93,8 +95,10 @@ impl Handler<AskQuestions> for Repo {
 
     fn handle(&mut self, _msg: AskQuestions, _ctx: &mut Self::Context) -> Self::Result {
         let client: &mut Connection = &mut self.0.get().unwrap();
-        let rows: Vec<Row> = client.query("SELECT * FROM public.ask_question", &[]).unwrap();
-        let results: Vec<AskQuestion> = rows.iter().map(AskQuestion::from).collect::<Vec<AskQuestion>>();
+        let rows: Vec<Row> = client.query("SELECT * FROM public.ask_questions", &[]).unwrap();
+        let results: Vec<AskQuestion> = rows.iter()
+            .map(AskQuestion::from)
+            .collect::<Vec<AskQuestion>>();
 
         Ok(results.clone())
     }

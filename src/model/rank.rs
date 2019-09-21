@@ -22,7 +22,7 @@ impl Default for Rank {
     fn default() -> Self {
         Self {
             id: 0,
-            name: "".to_owned(),
+            name: String::new(),
             status: 0,
             created_at: NaiveDateTime::from_timestamp(0, 0),
             updated_at: NaiveDateTime::from_timestamp(0, 0),
@@ -72,8 +72,10 @@ impl Handler<Rank> for Repo {
 
     fn handle(&mut self, _msg: Rank, _ctx: &mut Self::Context) -> Self::Result {
         let client: &mut Connection = &mut self.0.get().unwrap();
-        let rows: Vec<Row> = client.query("SELECT * FROM public.rank", &[]).unwrap();
-        let results: Vec<Rank> = rows.iter().map(Rank::from).collect::<Vec<Rank>>();
+        let rows: Vec<Row> = client.query("SELECT * FROM public.ranks", &[]).unwrap();
+        let results: Vec<Rank> = rows.iter()
+            .map(Rank::from)
+            .collect::<Vec<Rank>>();
 
         if results.is_empty() {
             Ok(Rank::default())
@@ -94,8 +96,10 @@ impl Handler<Ranks> for Repo {
 
     fn handle(&mut self, _msg: Ranks, _ctx: &mut Self::Context) -> Self::Result {
         let client: &mut Connection = &mut self.0.get().unwrap();
-        let rows: Vec<Row> = client.query("SELECT * FROM public.rank", &[]).unwrap();
-        let results: Vec<Rank> = rows.iter().map(Rank::from).collect::<Vec<Rank>>();
+        let rows: Vec<Row> = client.query("SELECT * FROM public.ranks", &[]).unwrap();
+        let results: Vec<Rank> = rows.iter()
+            .map(Rank::from)
+            .collect::<Vec<Rank>>();
 
         Ok(results.clone())
     }

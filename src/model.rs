@@ -17,6 +17,8 @@ pub mod industry;
 pub mod project;
 pub mod rank;
 pub mod user;
+pub mod oauth_identity;
+pub mod bank_account;
 pub mod withdrawal_request;
 pub mod work_function;
 
@@ -25,6 +27,8 @@ pub use country::{Countries, Country};
 pub use industry::{Industries, Industry};
 pub use project::{Project};
 pub use rank::{Ranks, Rank};
-pub use user::User;
+pub use user::{User};
+pub use oauth_identity::{OauthIdentity};
+pub use bank_account::{BankAccount};
 pub use withdrawal_request::{WithdrawalRequest};
 pub use work_function::{WorkFunctions, WorkFunction};
