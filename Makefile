@@ -19,3 +19,7 @@ check.only:
 .PHONY: sync
 sync:
 	@bash -c "ag -l | entr -s 'rsync -avz --exclude .git --exclude target --exclude logs . discoursenet:~/builder/pp'"
+
+.PHONY: rcheck
+rcheck:
+	@docker run --rm --user "$(id -u)":"$(id -g)" -v "$PWD":/usr/src/app -w /usr/src/app rust:1.37 cargo check
