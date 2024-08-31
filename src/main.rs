@@ -1,8 +1,10 @@
 use std::{env, io};
 
-use actix_web::http::{header, Method};
-use actix_web::{error, get, guard, middleware, web, App, HttpRequest, HttpResponse, HttpServer, Responder, Result};
 use actix_cors::Cors;
+use actix_web::http::{header, Method};
+use actix_web::{
+    error, get, guard, middleware, web, App, HttpRequest, HttpResponse, HttpServer, Responder, Result,
+};
 use dotenv::dotenv;
 use listenfd::ListenFd;
 
@@ -66,22 +68,10 @@ async fn main() -> io::Result<()> {
                     .max_age(3600),
             )
             .service(index)
-            .service(
-                web::resource("/jobs")
-                    .route(web::get().to(api::get_all_jobs))
-            )
-            .service(
-                web::resource("/jobs/{id}")
-                    .route(web::get().to(api::get_job))
-            )
-            .service(
-                web::resource("/mgmt/jobs")
-                    .route(web::post().to(api::create_job))
-            )
-            .service(
-                web::resource("/mgmt/jobs/{id}")
-                    .route(web::delete().to(api::delete_job))
-            )
+            .service(web::resource("/jobs").route(web::get().to(api::get_all_jobs)))
+            .service(web::resource("/jobs/{id}").route(web::get().to(api::get_job)))
+            .service(web::resource("/mgmt/jobs").route(web::post().to(api::create_job)))
+            .service(web::resource("/mgmt/jobs/{id}").route(web::delete().to(api::delete_job)))
             .service(api::create_fake_job)
             .service(web::resource("/version").guard(guard::Get()).to(api::version))
             .default_service(web::to(default_handler))

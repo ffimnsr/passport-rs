@@ -1,4 +1,7 @@
-use actix_web::{error::{self, ErrorBadRequest}, get, web, HttpRequest, HttpResponse, Result};
+use actix_web::{
+    error::{self, ErrorBadRequest},
+    get, web, HttpRequest, HttpResponse, Result,
+};
 use log::debug;
 use sqlx::PgPool;
 
@@ -61,9 +64,9 @@ pub async fn create_job(pool: web::Data<PgPool>, job: web::Json<NewJob>) -> Resu
 // Create fake job data
 #[get("/faker/create-job")]
 pub async fn create_fake_job(pool: web::Data<PgPool>) -> Result<HttpResponse> {
-    use fake::Fake;
     use fake::faker::company::en::Profession;
     use fake::faker::lorem::en::Sentence;
+    use fake::Fake;
 
     let mut pool = pool.acquire().await.map_err(error::ErrorInternalServerError)?;
     let job = NewJob {
@@ -87,7 +90,6 @@ pub async fn delete_job(pool: web::Data<PgPool>, id: web::Path<i32>) -> Result<H
 
     Ok(HttpResponse::NoContent().finish())
 }
-
 
 #[cfg(test)]
 mod tests {
