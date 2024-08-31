@@ -2,6 +2,7 @@ use chrono::{DateTime, Utc};
 use futures::StreamExt;
 use serde::{Deserialize, Serialize};
 use sqlx::PgConnection;
+use validator::Validate;
 
 #[derive(Debug, Serialize, Deserialize, sqlx::Type)]
 #[repr(i16)]
@@ -28,9 +29,11 @@ pub enum JobStatus {
     Closed = 0,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Validate, Deserialize, Serialize)]
 pub struct NewJob {
+    #[validate(length(min = 5, max = 300))]
     pub title: String,
+    #[validate(length(min = 10))]
     pub description: String,
 }
 

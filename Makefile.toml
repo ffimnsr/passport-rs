@@ -1,0 +1,72 @@
+[tasks.install-systemfd]
+install_crate = "systemfd"
+
+[tasks.install-cargo-watch]
+install_crate = "cargo-watch"
+
+[tasks.install-git-hooks]
+command = "git"
+args = ["config", "--local", "core.hooksPath", ".githooks/"]
+
+[tasks.serve]
+command = "systemfd"
+args = [
+  "--no-pid",
+  "-s",
+  "http::5000",
+  "--",
+  "cargo",
+  "watch",
+  "-w",
+  "src",
+  "-x",
+  "run",
+]
+dependencies = ["install-systemfd", "install-cargo-watch"]
+
+[tasks.trigger-serve]
+command = "systemfd"
+args = [
+  "--no-pid",
+  "-s",
+  "http::5000",
+  "--",
+  "cargo",
+  "watch",
+  "--no-vcs-ignores",
+  "--watch-when-idle",
+  "-w",
+  ".trigger",
+  "-x",
+  "run",
+]
+dependencies = ["install-systemfd", "install-cargo-watch"]
+
+[tasks.trigger-touch]
+command = "cargo"
+args = [
+  "watch",
+  "--no-vcs-ignores",
+  "--watch-when-idle",
+  "-w",
+  "src",
+  "-x",
+  "check",
+  "--",
+  "touch",
+  ".trigger",
+]
+dependencies = ["install-cargo-watch"]
+
+[tasks.trigger]
+run_task = { name = ["trigger-touch", "trigger-serve"], parallel = true }
+
+[tasks.migrate]
+install_crate = "midas"
+command = "midas"
+args = ["up"]
+
+[tasks.test-live]
+install_crate = "hurl"
+command = "hurl"
+args = ["--tests", "tests/*.hurl"]

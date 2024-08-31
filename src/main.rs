@@ -1,7 +1,8 @@
 use std::{env, io};
 
-use actix_web::http::Method;
-use actix_web::{get, guard, middleware, web, App, HttpRequest, HttpResponse, HttpServer, Responder, Result};
+use actix_web::http::{header, Method};
+use actix_web::{error, get, guard, middleware, web, App, HttpRequest, HttpResponse, HttpServer, Responder, Result};
+use actix_cors::Cors;
 use dotenv::dotenv;
 use listenfd::ListenFd;
 
@@ -23,6 +24,21 @@ async fn default_handler(_req_method: Method) -> Result<impl Responder> {
     Ok(HttpResponse::MethodNotAllowed().finish())
 }
 
+fn json_error_handler(err: error::JsonPayloadError, _req: &HttpRequest) -> error::Error {
+    use actix_web::error::JsonPayloadError;
+
+    let detail = err.to_string();
+    let resp = match &err {
+        JsonPayloadError::ContentType => HttpResponse::UnsupportedMediaType().body(detail),
+        JsonPayloadError::Deserialize(json_err) if json_err.is_data() => {
+            HttpResponse::UnprocessableEntity().body(detail)
+        }
+        _ => HttpResponse::BadRequest().body(detail),
+    };
+
+    error::InternalError::from_response(err, resp).into()
+}
+
 #[actix_web::main]
 async fn main() -> io::Result<()> {
     dotenv().ok();
@@ -32,24 +48,41 @@ async fn main() -> io::Result<()> {
     let pool = db::init_pool(&database_url).await.expect("Failed to create pool");
 
     let app = move || {
-        let json_cfg = web::JsonConfig::default().limit(4096);
+        let json_cfg = web::JsonConfig::default()
+            .error_handler(json_error_handler)
+            .limit(4096);
         let pool = web::Data::new(pool.clone());
         App::new()
             .app_data(pool)
             .app_data(json_cfg)
             .wrap(middleware::Compress::default())
             .wrap(middleware::Logger::default())
+            .wrap(
+                Cors::default()
+                    .allowed_origin("http://localhost:8000")
+                    .allowed_methods(vec!["GET"])
+                    .allowed_headers(vec![header::AUTHORIZATION, header::ACCEPT, header::CONTENT_TYPE])
+                    .supports_credentials()
+                    .max_age(3600),
+            )
             .service(index)
             .service(
                 web::resource("/jobs")
                     .route(web::get().to(api::get_all_jobs))
-                    .route(web::post().to(api::create_job)),
             )
             .service(
                 web::resource("/jobs/{id}")
                     .route(web::get().to(api::get_job))
-                    .route(web::delete().to(api::delete_job)),
             )
+            .service(
+                web::resource("/mgmt/jobs")
+                    .route(web::post().to(api::create_job))
+            )
+            .service(
+                web::resource("/mgmt/jobs/{id}")
+                    .route(web::delete().to(api::delete_job))
+            )
+            .service(api::create_fake_job)
             .service(web::resource("/version").guard(guard::Get()).to(api::version))
             .default_service(web::to(default_handler))
     };

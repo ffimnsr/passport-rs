@@ -1,4 +1,4 @@
-use actix_web::{error, web, HttpRequest, HttpResponse, Result};
+use actix_web::{error::{self, ErrorBadRequest}, get, web, HttpRequest, HttpResponse, Result};
 use log::debug;
 use sqlx::PgPool;
 
@@ -36,6 +36,8 @@ pub async fn get_job(pool: web::Data<PgPool>, id: web::Path<i32>) -> Result<Http
 
 // Create a new job
 pub async fn create_job(pool: web::Data<PgPool>, job: web::Json<NewJob>) -> Result<HttpResponse> {
+    use validator::Validate;
+
     let mut pool = pool
         .acquire()
         .await
@@ -44,9 +46,33 @@ pub async fn create_job(pool: web::Data<PgPool>, job: web::Json<NewJob>) -> Resu
 
     debug!("Creating job: {:?}", job);
     let job = job.into_inner();
+
+    // Validate the job data
+    job.validate().map_err(ErrorBadRequest)?;
+
     let job_id = Job::insert(job, &mut pool)
         .await
         .inspect_err(|e| debug!("Error inserting job: {:?}", e))
+        .map_err(error::ErrorInternalServerError)?;
+
+    Ok(HttpResponse::Created().json(serde_json::json!({ "id": job_id })))
+}
+
+// Create fake job data
+#[get("/faker/create-job")]
+pub async fn create_fake_job(pool: web::Data<PgPool>) -> Result<HttpResponse> {
+    use fake::Fake;
+    use fake::faker::company::en::Profession;
+    use fake::faker::lorem::en::Sentence;
+
+    let mut pool = pool.acquire().await.map_err(error::ErrorInternalServerError)?;
+    let job = NewJob {
+        title: Profession().fake(),
+        description: Sentence(1..5).fake(),
+    };
+
+    let job_id = Job::insert(job, &mut pool)
+        .await
         .map_err(error::ErrorInternalServerError)?;
 
     Ok(HttpResponse::Created().json(serde_json::json!({ "id": job_id })))
@@ -61,6 +87,7 @@ pub async fn delete_job(pool: web::Data<PgPool>, id: web::Path<i32>) -> Result<H
 
     Ok(HttpResponse::NoContent().finish())
 }
+
 
 #[cfg(test)]
 mod tests {
