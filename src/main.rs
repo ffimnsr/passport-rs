@@ -2,11 +2,12 @@ use std::{env, io};
 
 use actix_web::http::Method;
 use actix_web::{
-    middleware, web, App, HttpRequest, HttpResponse, HttpServer, Responder, Result,
+    get, guard, middleware, web, App, HttpRequest, HttpResponse, HttpServer, Responder, Result
 };
 use dotenv::dotenv;
 use listenfd::ListenFd;
 
+mod api;
 mod db;
 mod model;
 // mod schema;
@@ -53,6 +54,7 @@ mod model;
 //     })
 // }
 
+#[get("/")]
 async fn index(_req: HttpRequest) -> Result<HttpResponse> {
     Ok(HttpResponse::Ok().body("Open Sesame"))
 }
@@ -81,9 +83,15 @@ async fn main() -> io::Result<()> {
         App::new()
             .app_data(pool)
             .app_data(json_cfg)
+            .wrap(middleware::NormalizePath::default())
             .wrap(middleware::Compress::default())
             .wrap(middleware::Logger::default())
-            .service(web::resource("/").to(index))
+            .service(index)
+            .service(
+                web::resource("/version")
+                    .guard(guard::Get())
+                    .to(api::version),
+            )
             .default_service(web::to(default_handler))
     };
 
@@ -106,7 +114,7 @@ mod tests {
 
     #[test]
     async fn test_index() -> Result<(), Error> {
-        let app = App::new().route("/", web::get().to(index));
+        let app = App::new().service(index);
         let app = test::init_service(app).await;
 
         let req = test::TestRequest::get().uri("/").to_request();

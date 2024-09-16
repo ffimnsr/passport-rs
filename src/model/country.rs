@@ -1,10 +1,9 @@
 use std::convert::From;
 
-use actix_web::cookie::time::Date;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Default, Serialize, Deserialize, Debug, Clone)]
 pub struct Country {
     pub id: i32,
     pub name: String,
@@ -16,23 +15,22 @@ pub struct Country {
     pub updated_at: DateTime<Utc>,
 }
 
-impl Default for Country {
-    fn default() -> Self {
-        Self {
-            id: 0,
-            name: String::new(),
-            code: String::new(),
-            idd_code: String::new(),
-            currency: String::new(),
-            status: 0,
-            created_at: DateTime::from_timestamp(0, 0),
-            updated_at: NaiveDateTime::from_timestamp(0, 0),
-        }
-    }
-}
+// impl Default for Country {
+//     fn default() -> Self {
+//         Self {
+//             id: 0,
+//             name: String::new(),
+//             code: String::new(),
+//             idd_code: String::new(),
+//             currency: String::new(),
+//             status: 0,
+//             created_at: DateTime::from_timestamp(0, 0).expect(""),
+//             updated_at: DateTime::from_timestamp(0, 0),
+//         }
+//     }
+// }
 
 impl Country {
-    #[allow(dead_code)]
     pub fn with_id(id: i32) -> Self {
         let mut model = Self::default();
         model.id = id;
