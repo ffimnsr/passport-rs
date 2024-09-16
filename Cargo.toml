@@ -1,27 +1,24 @@
 [package]
-name = "passport"
+name = "passport-rs"
 version = "1.1.0"
-authors = ["ffimnsr <ffimnsr@gmail.com>"]
-edition = "2018"
+authors = ["Edward Fitz Abucay <gh:@ffimnsr>"]
+edition = "2021"
 publish = false
 
 [dependencies]
-actix = "0.8"
-actix-web = "1.0"
-dotenv = "0.14"
+actix-web = "4.9"
+dotenv = "0.15"
 serde = "1.0"
 serde_json = "1.0"
-futures = "0.1"
+futures = "0.3"
 log = "0.4"
-env_logger = "0.6"
-r2d2 = "0.8"
-r2d2_postgres = "0.15.0-rc.1"
+env_logger = "0.11"
 chrono = { version = "0.4", features = ["serde"] }
-uuid = { version = "0.7", features = ["serde", "v4"] }
-url = "1.7"
-juniper = "0.12"
-lazy_static = "1.3"
-bcrypt = "0.4"
-failure = "0.1.5"
-postgres = { version = "0.16.0-rc.2", features = ["runtime", "with-chrono-0_4", "with-serde_json-1"] }
-reqwest = "0.9"
+uuid = { version = "1.10", features = ["serde", "v4"] }
+url = "2.5"
+lazy_static = "1.5"
+bcrypt = "0.15"
+reqwest = "0.12"
+listenfd = "1.0"
+sqlx = { version = "0.8", features = ["runtime-tokio", "tls-rustls", "sqlite", "postgres", "chrono"] }
+casbin = "2.5"
