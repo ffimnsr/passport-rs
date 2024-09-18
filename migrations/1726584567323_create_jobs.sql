@@ -1,0 +1,15 @@
+-- # Put the your SQL below migration seperator.
+-- !UP
+
+CREATE TABLE IF NOT EXISTS jobs (
+  id SERIAL PRIMARY KEY,
+  title VARCHAR(300) NOT NULL UNIQUE,
+  description TEXT NOT NULL,
+  status SMALLINT DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+-- !DOWN
+
+DROP TABLE jobs;

@@ -1,9 +1,8 @@
+use std::sync::Arc;
 use std::{env, io};
 
 use actix_web::http::Method;
-use actix_web::{
-    get, guard, middleware, web, App, HttpRequest, HttpResponse, HttpServer, Responder, Result
-};
+use actix_web::{get, guard, middleware, web, App, HttpRequest, HttpResponse, HttpServer, Responder, Result};
 use dotenv::dotenv;
 use listenfd::ListenFd;
 
@@ -56,7 +55,10 @@ mod model;
 
 #[get("/")]
 async fn index(_req: HttpRequest) -> Result<HttpResponse> {
-    Ok(HttpResponse::Ok().body("Open Sesame"))
+    let payload = serde_json::json!({
+        "message": "Open Sesame"
+    });
+    Ok(HttpResponse::Ok().json(payload))
 }
 
 async fn default_handler(req_method: Method) -> Result<impl Responder> {
@@ -70,12 +72,9 @@ async fn main() -> io::Result<()> {
     dotenv().ok();
     env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));
 
-    let database_url = env::var("DATABASE_URL")
-        .expect("DATABASE_URL must be set");
+    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
 
-    let pool = db::init_pool(&database_url)
-        .await
-        .expect("Failed to create pool");
+    let pool = db::init_pool(&database_url).await.expect("Failed to create pool");
 
     let app = move || {
         let json_cfg = web::JsonConfig::default().limit(4096);
@@ -83,15 +82,15 @@ async fn main() -> io::Result<()> {
         App::new()
             .app_data(pool)
             .app_data(json_cfg)
-            .wrap(middleware::NormalizePath::default())
             .wrap(middleware::Compress::default())
             .wrap(middleware::Logger::default())
             .service(index)
             .service(
-                web::resource("/version")
-                    .guard(guard::Get())
-                    .to(api::version),
+                web::resource("/jobs")
+                    .route(web::get().to(api::get_all_jobs))
+                    .route(web::post().to(api::create_job)),
             )
+            .service(web::resource("/version").guard(guard::Get()).to(api::version))
             .default_service(web::to(default_handler))
     };
 
@@ -110,7 +109,7 @@ async fn main() -> io::Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use actix_web::{body::to_bytes, dev::Service, http, Error, test};
+    use actix_web::{body::to_bytes, dev::Service, http, test, Error};
 
     #[test]
     async fn test_index() -> Result<(), Error> {
@@ -123,7 +122,7 @@ mod tests {
         assert_eq!(resp.status(), http::StatusCode::OK);
 
         let response_body = resp.into_body();
-        assert_eq!(to_bytes(response_body).await?, r##"Hello world!"##);
+        assert_eq!(to_bytes(response_body).await?, r##"Open Sesame"##);
         Ok(())
     }
 }

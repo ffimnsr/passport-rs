@@ -2,3 +2,5 @@
 /target
 **/*.rs.bk
 /passport.db
+/data.db3
+/.env

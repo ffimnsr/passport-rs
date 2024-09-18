@@ -12,7 +12,7 @@ pub mod job;
 
 // pub use ask_question::{AskQuestions, AskQuestion};
 pub use country::{Countries, Country};
-pub use job::{Job, Jobs};
+pub use job::Job;
 // pub use industry::{Industries, Industry};
 // pub use project::{Project};
 // pub use rank::{Ranks, Rank};

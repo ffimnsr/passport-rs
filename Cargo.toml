@@ -20,5 +20,6 @@ lazy_static = "1.5"
 bcrypt = "0.15"
 reqwest = "0.12"
 listenfd = "1.0"
-sqlx = { version = "0.8", features = ["runtime-tokio", "tls-rustls", "sqlite", "postgres", "chrono"] }
+sqlx = { version = "0.8", features = ["runtime-tokio", "tls-rustls", "postgres", "chrono"] }
+sqlx-core = "0.8"
 casbin = "2.5"
