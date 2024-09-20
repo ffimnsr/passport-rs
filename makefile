@@ -24,6 +24,9 @@ sync:
 docker.check:
 	docker run --rm --user "$(id -u)":"$(id -g)" -v "$PWD":/usr/src/app -w /usr/src/app rust:1.37 cargo check
 
+init-git:
+	git config --local core.hooksPath .githooks/
+
 .PHONY: \
 	serve \
 	serve.lint \
