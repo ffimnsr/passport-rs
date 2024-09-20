@@ -1,4 +1,4 @@
-use std::convert::From;
+// use std::convert::From;
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
@@ -30,13 +30,14 @@ pub struct Country {
 //     }
 // }
 
-impl Country {
-    pub fn with_id(id: i32) -> Self {
-        let mut model = Self::default();
-        model.id = id;
-        model
-    }
-}
+// impl Country {
+//     pub fn with_id(id: i32) -> Self {
+//         Self {
+//             id,
+//             ..Default::default()
+//         }
+//     }
+// }
 
 // impl From<Row> for Country {
 //     fn from(row: Row) -> Self {
@@ -86,7 +87,7 @@ impl Country {
 //     }
 // }
 
-pub struct Countries;
+// pub struct Countries;
 
 // impl Message for Countries {
 //     type Result = FieldResult<Vec<Country>>;

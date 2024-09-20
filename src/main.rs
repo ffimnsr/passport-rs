@@ -1,4 +1,3 @@
-use std::sync::Arc;
 use std::{env, io};
 
 use actix_web::http::Method;
@@ -61,10 +60,11 @@ async fn index(_req: HttpRequest) -> Result<HttpResponse> {
     Ok(HttpResponse::Ok().json(payload))
 }
 
-async fn default_handler(req_method: Method) -> Result<impl Responder> {
-    match req_method {
-        _ => Ok(HttpResponse::MethodNotAllowed().finish()),
-    }
+async fn default_handler(_req_method: Method) -> Result<impl Responder> {
+    // match req_method {
+    //     _ => Ok(HttpResponse::MethodNotAllowed().finish()),
+    // }
+    Ok(HttpResponse::MethodNotAllowed().finish())
 }
 
 #[actix_web::main]

@@ -15,6 +15,9 @@ check:
 check.lint:
 	cargo watch -x clippy -x check
 
+clippy:
+	cargo clippy --all-features --all-targets --tests --benches -- -Dclippy::all
+
 trigger:
 	cargo watch --no-vcs-ignores -w src -s 'touch .trigger' -x check
 
@@ -32,6 +35,7 @@ init-git:
 	serve.lint \
 	check \
 	check.lint \
+	clippy \
 	trigger \
 	trigger.watch \
 	sync \

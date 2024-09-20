@@ -47,8 +47,9 @@ do
       exit 1
     fi
 
-    check_lint()
-    check_code_warnings()
+    check_lint
+
+    check_code_warnings
   fi
 done
 

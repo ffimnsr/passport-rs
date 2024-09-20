@@ -11,7 +11,7 @@ pub mod job;
 // pub mod work_function;
 
 // pub use ask_question::{AskQuestions, AskQuestion};
-pub use country::{Countries, Country};
+// pub use country::{Countries, Country};
 pub use job::Job;
 // pub use industry::{Industries, Industry};
 // pub use project::{Project};
@@ -22,8 +22,8 @@ pub use job::Job;
 // pub use withdrawal_request::{WithdrawalRequest};
 // pub use work_function::{WorkFunctions, WorkFunction};
 
-pub trait Repo {
-    fn all<T>() -> sqlx::Result<Vec<T>>;
-    fn insert<T>(data: T) -> sqlx::Result<i64>;
-    fn delete_with_id<T>(id: i64) -> sqlx::Result<()>;
-}
+// pub trait Repo {
+//     fn all<T>() -> sqlx::Result<Vec<T>>;
+//     fn insert<T>(data: T) -> sqlx::Result<i64>;
+//     fn delete_with_id<T>(id: i64) -> sqlx::Result<()>;
+// }

@@ -32,7 +32,6 @@ impl Job {
     }
 
     pub async fn insert(data: NewJob, conn: &mut PgConnection) -> sqlx::Result<i64> {
-
         let row: (i64,) =
             sqlx::query_as("INSERT INTO jobs (title, description) VALUES ($1, $2) RETURNING id")
                 .bind(data.title)
@@ -42,13 +41,13 @@ impl Job {
         Ok(row.0)
     }
 
-    pub async fn delete_with_id(id: i64, conn: &mut PgConnection) -> sqlx::Result<()> {
-        sqlx::query("DELETE FROM jobs WHERE id = $1")
-            .bind(id)
-            .execute(conn)
-            .await?;
-        Ok(())
-    }
+    // pub async fn delete_with_id(id: i64, conn: &mut PgConnection) -> sqlx::Result<()> {
+    //     sqlx::query("DELETE FROM jobs WHERE id = $1")
+    //         .bind(id)
+    //         .execute(conn)
+    //         .await?;
+    //     Ok(())
+    // }
 }
 
 // #[cfg(test)]
