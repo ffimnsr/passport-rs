@@ -81,25 +81,51 @@ impl Job {
         Ok(row.0)
     }
 
-    // pub async fn delete_with_id(id: i64, conn: &mut PgConnection) -> sqlx::Result<()> {
-    //     sqlx::query("DELETE FROM jobs WHERE id = $1")
-    //         .bind(id)
-    //         .execute(conn)
-    //         .await?;
-    //     Ok(())
-    // }
+    pub async fn delete_with_id(id: i32, conn: &mut PgConnection) -> sqlx::Result<()> {
+        sqlx::query("DELETE FROM jobs WHERE id = $1")
+            .bind(id)
+            .execute(conn)
+            .await?;
+        Ok(())
+    }
 }
 
-// #[cfg(test)]
-// mod tests {
-//     use sqlx::{Any, AnyPool, PgPool, SqlitePool};
+#[cfg(test)]
+mod tests {
+    use sqlx::{PgPool, Executor};
+    use indoc::indoc;
 
-//     use super::*;
+    use super::*;
 
-//     async fn it_works(pool: AnyPool) -> sqlx::Result<()> {
-//       let mut conn = pool.acquire().await?;
-//       let foo = Job::all(&mut conn).await?;
-//       assert_eq!(foo.len(), 0);
-//       Ok(())
-//     }
-// }
+    #[sqlx::test(migrations = false)]
+    async fn test_get_all_jobs(pool: PgPool) -> sqlx::Result<()> {
+        let mut conn = pool.acquire().await?;
+        let query = indoc! {"
+            CREATE TABLE IF NOT EXISTS jobs (
+                id SERIAL PRIMARY KEY,
+                title VARCHAR(300) NOT NULL UNIQUE,
+                description TEXT NOT NULL,
+                experience_level SMALLINT NOT NULL DEFAULT 1,
+                salary_upper_limit TEXT,
+                salary_lower_limit TEXT,
+                salary_currency VARCHAR(10),
+                salary_timeframe SMALLINT,
+                work_type SMALLINT NOT NULL DEFAULT 1,
+                has_timetracker BOOLEAN DEFAULT FALSE,
+                status SMALLINT DEFAULT 1,
+                created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+            );
+
+            INSERT INTO jobs (title, description) VALUES ('foo', 'bar');
+        "};
+
+        conn.execute(query).await?;
+
+        let foo = Job::all(&mut conn).await?;
+        assert_eq!(foo.len(), 1);
+        assert_eq!(foo[0].title, "foo");
+        assert_eq!(foo[0].description, "bar");
+        Ok(())
+    }
+}

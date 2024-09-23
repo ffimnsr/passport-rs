@@ -29,7 +29,6 @@ async fn main() -> io::Result<()> {
     env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));
 
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-
     let pool = db::init_pool(&database_url).await.expect("Failed to create pool");
 
     let app = move || {
@@ -46,7 +45,11 @@ async fn main() -> io::Result<()> {
                     .route(web::get().to(api::get_all_jobs))
                     .route(web::post().to(api::create_job)),
             )
-            .service(web::resource("/jobs/{id}").route(web::get().to(api::get_job)))
+            .service(
+                web::resource("/jobs/{id}")
+                    .route(web::get().to(api::get_job))
+                    .route(web::delete().to(api::delete_job)),
+            )
             .service(web::resource("/version").guard(guard::Get()).to(api::version))
             .default_service(web::to(default_handler))
     };
