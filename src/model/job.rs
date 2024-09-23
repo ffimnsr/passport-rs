@@ -92,8 +92,8 @@ impl Job {
 
 #[cfg(test)]
 mod tests {
-    use sqlx::{PgPool, Executor};
     use indoc::indoc;
+    use sqlx::{Executor, PgPool};
 
     use super::*;
 
