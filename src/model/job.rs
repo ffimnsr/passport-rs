@@ -3,6 +3,31 @@ use futures::StreamExt;
 use serde::{Deserialize, Serialize};
 use sqlx::PgConnection;
 
+#[derive(Debug, Serialize, Deserialize, sqlx::Type)]
+#[repr(i16)]
+pub enum ExperienceLevel {
+    Intern = 1,
+    Junior = 2,
+    Mid = 3,
+    Senior = 4,
+    Lead = 5,
+}
+
+#[derive(Debug, Serialize, Deserialize, sqlx::Type)]
+#[repr(i16)]
+pub enum WorkType {
+    FullTime = 1,
+    PartTime = 2,
+    Contract = 3,
+}
+
+#[derive(Debug, Serialize, Deserialize, sqlx::Type)]
+#[repr(i16)]
+pub enum JobStatus {
+    Open = 1,
+    Closed = 0,
+}
+
 #[derive(Debug, Deserialize, Serialize)]
 pub struct NewJob {
     pub title: String,
@@ -14,7 +39,14 @@ pub struct Job {
     pub id: i32,
     pub title: String,
     pub description: String,
-    pub status: Option<i16>,
+    pub experience_level: Option<ExperienceLevel>,
+    pub salary_upper_limit: Option<String>,
+    pub salary_lower_limit: Option<String>,
+    pub salary_currency: Option<String>,
+    pub salary_timeframe: Option<String>,
+    pub work_type: Option<WorkType>,
+    pub has_timetracker: Option<bool>,
+    pub status: Option<JobStatus>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
@@ -31,8 +63,16 @@ impl Job {
         Ok(jobs)
     }
 
-    pub async fn insert(data: NewJob, conn: &mut PgConnection) -> sqlx::Result<i64> {
-        let row: (i64,) =
+    pub async fn get_with_id(id: i32, conn: &mut PgConnection) -> sqlx::Result<Job> {
+        let job = sqlx::query_as::<_, Job>("SELECT * FROM jobs WHERE id = $1")
+            .bind(id)
+            .fetch_one(conn)
+            .await?;
+        Ok(job)
+    }
+
+    pub async fn insert(data: NewJob, conn: &mut PgConnection) -> sqlx::Result<i32> {
+        let row: (i32,) =
             sqlx::query_as("INSERT INTO jobs (title, description) VALUES ($1, $2) RETURNING id")
                 .bind(data.title)
                 .bind(data.description)

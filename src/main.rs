@@ -8,62 +8,18 @@ use listenfd::ListenFd;
 mod api;
 mod db;
 mod model;
-// mod schema;
 
-// use crate::model::Repo;
-// use crate::schema::{create_schema, Context, Schema};
-
-// struct AppState {
-//     executor: GraphQLExecutor,
-// }
-
-// #[derive(Clone)]
-// struct GraphQLExecutor {
-//     schema: Arc<Schema>,
-//     context: Context,
-// }
-
-// impl GraphQLExecutor {
-//     fn new(schema: Arc<Schema>, context: Context) -> GraphQLExecutor {
-//         GraphQLExecutor { schema, context }
-//     }
-// }
-
-// fn graphiql() -> HttpResponse {
-//     let html = graphiql_source("/graphql");
-//     HttpResponse::Ok()
-//         .content_type("text/html; charset=utf-8")
-//         .body(html)
-// }
-
-// fn graphql(
-//     st: web::Data<AppState>,
-//     data: web::Json<GraphQLRequest>,
-// ) -> impl Future<Item = HttpResponse, Error = Error> {
-//     web::block(move || {
-//         let res = data.execute(&st.executor.schema, &st.executor.context);
-//         Ok::<_, serde_json::error::Error>(serde_json::to_string(&res)?)
-//     })
-//     .map_err(Error::from)
-//     .and_then(|out| {
-//         Ok(HttpResponse::Ok()
-//             .content_type("application/json; charset=utf-8")
-//             .body(out))
-//     })
-// }
+const PKG_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 #[get("/")]
 async fn index(_req: HttpRequest) -> Result<HttpResponse> {
     let payload = serde_json::json!({
-        "message": "Open Sesame"
+        "message": format!("Open Sesame {PKG_VERSION}")
     });
     Ok(HttpResponse::Ok().json(payload))
 }
 
 async fn default_handler(_req_method: Method) -> Result<impl Responder> {
-    // match req_method {
-    //     _ => Ok(HttpResponse::MethodNotAllowed().finish()),
-    // }
     Ok(HttpResponse::MethodNotAllowed().finish())
 }
 
@@ -90,6 +46,7 @@ async fn main() -> io::Result<()> {
                     .route(web::get().to(api::get_all_jobs))
                     .route(web::post().to(api::create_job)),
             )
+            .service(web::resource("/jobs/{id}").route(web::get().to(api::get_job)))
             .service(web::resource("/version").guard(guard::Get()).to(api::version))
             .default_service(web::to(default_handler))
     };
@@ -122,7 +79,13 @@ mod tests {
         assert_eq!(resp.status(), http::StatusCode::OK);
 
         let response_body = resp.into_body();
-        assert_eq!(to_bytes(response_body).await?, r##"Open Sesame"##);
+        let expected_body = serde_json::json!({
+            "message": format!("Open Sesame {PKG_VERSION}")
+        });
+        assert_eq!(
+            to_bytes(response_body).await?,
+            expected_body.to_string().as_bytes()
+        );
         Ok(())
     }
 }
