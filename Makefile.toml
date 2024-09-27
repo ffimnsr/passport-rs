@@ -112,6 +112,8 @@ fi
 latest_version=${CARGO_MAKE_PROJECT_VERSION}
 name=${CARGO_MAKE_PROJECT_NAME}
 $packager build \
+  --sbom=true \
+  --provenance=true \
   --label org.opencontainers.image.created=$(date +%Y-%m-%dT%H:%M:%S%z) \
   --label org.opencontainers.image.authors=gh:@ffimnsr \
   --label org.opencontainers.image.description="$name $latest_version" \
