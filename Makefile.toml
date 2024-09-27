@@ -70,3 +70,57 @@ args = ["up"]
 install_crate = "hurl"
 command = "hurl"
 args = ["--tests", "tests/*.hurl"]
+
+[tasks.create-package]
+script = '''
+#!/usr/bin/env bash
+
+set -e
+
+packager=docker
+if ! command -v docker &>/dev/null; then
+  packager=podman
+fi
+
+latest_version=${CARGO_MAKE_PROJECT_VERSION}
+name=${CARGO_MAKE_PROJECT_NAME}
+$packager build \
+  --label org.opencontainers.image.created=$(date +%Y-%m-%dT%H:%M:%S%z) \
+  --label org.opencontainers.image.authors=gh:@ffimnsr \
+  --label org.opencontainers.image.description="$name $latest_version" \
+  --label org.opencontainers.image.revision=$(git rev-parse HEAD) \
+  --label org.opencontainers.image.source=$(git remote get-url origin) \
+  --label org.opencontainers.image.title=$name \
+  --label org.opencontainers.image.url=https://github.com/ffimnsr/playground \
+  --label org.opencontainers.image.version=$latest_version\
+  -f Containerfile \
+  -t docker.io/ifn4/$name:$latest_version \
+  -t docker.io/ifn4/$name:latest .
+'''
+
+[tasks.create-package-distroless]
+script = '''
+#!/usr/bin/env bash
+
+set -e
+
+packager=docker
+if ! command -v docker &>/dev/null; then
+  packager=podman
+fi
+
+latest_version=${CARGO_MAKE_PROJECT_VERSION}
+name=${CARGO_MAKE_PROJECT_NAME}
+$packager build \
+  --label org.opencontainers.image.created=$(date +%Y-%m-%dT%H:%M:%S%z) \
+  --label org.opencontainers.image.authors=gh:@ffimnsr \
+  --label org.opencontainers.image.description="$name $latest_version" \
+  --label org.opencontainers.image.revision=$(git rev-parse HEAD) \
+  --label org.opencontainers.image.source=$(git remote get-url origin) \
+  --label org.opencontainers.image.title=$name \
+  --label org.opencontainers.image.url=https://github.com/ffimnsr/playground \
+  --label org.opencontainers.image.version=$latest_version\
+  -f Containerfile.distroless \
+  -t docker.io/ifn4/$name-distroless:$latest_version \
+  -t docker.io/ifn4/$name-distroless:latest .
+'''

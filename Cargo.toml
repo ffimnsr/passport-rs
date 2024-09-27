@@ -28,5 +28,6 @@ sqlx = { version = "0.8", features = ["runtime-tokio", "tls-rustls", "postgres",
 sqlx-core = "0.8"
 casbin = "2.5"
 indoc = "2"
+openssl = { version = "0.10", features = ["vendored"] }
 validator = { version = "0.18", features = ["derive"] }
 fake = { version = "2.9.2", features = ["derive"] }
