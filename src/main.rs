@@ -77,12 +77,24 @@ async fn main() -> io::Result<()> {
             .default_service(web::to(default_handler))
     };
 
-    let mut listenfd = ListenFd::from_env();
-    let server = if let Some(lstn) = listenfd.take_tcp_listener(0).expect("Failed to take FD") {
-        HttpServer::new(app).listen(lstn).expect("Failed to bind FD")
+    let is_dev = env::var("DEV_MODE").is_ok();
+    let port: u16 = env::var("PORT")
+        .unwrap_or_else(|_| "8000".to_string())
+        .parse()
+        .expect("PORT must be a number");
+
+    let server = if is_dev {
+        let mut listenfd = ListenFd::from_env();
+        if let Some(lstn) = listenfd.take_tcp_listener(0).expect("Failed to take FD") {
+            HttpServer::new(app).listen(lstn).expect("Failed to bind FD")
+        } else {
+            HttpServer::new(app)
+                .bind(("127.0.0.1", port))
+                .expect("Failed to bind local port")
+        }
     } else {
         HttpServer::new(app)
-            .bind(("127.0.0.1", 8080))
+            .bind(("0.0.0.0", port))
             .expect("Failed to bind local port")
     };
 

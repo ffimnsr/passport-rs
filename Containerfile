@@ -13,6 +13,9 @@ COPY src ./src
 RUN cargo build --verbose --release --target x86_64-unknown-linux-musl
 
 FROM scratch
+
+ENV PORT=8000
+
 COPY --from=builder /usr/src/passport-rs/target/x86_64-unknown-linux-musl/release/passport-rs .
 USER 1000
 
