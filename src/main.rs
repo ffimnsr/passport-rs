@@ -64,7 +64,7 @@ async fn main() -> io::Result<()> {
                     .allowed_origin("http://localhost:8000")
                     .allowed_origin_fn(|origin, _req_head| {
                         origin.as_bytes().ends_with(b".sesame-landing-ifn4.pages.dev")
-                        || origin.as_bytes().ends_with(b".se-same.com")
+                            || origin.as_bytes().ends_with(b".se-same.com")
                     })
                     .allowed_methods(vec!["GET", "POST"])
                     .allowed_headers(vec![header::AUTHORIZATION, header::ACCEPT, header::CONTENT_TYPE])
