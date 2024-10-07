@@ -1,6 +1,6 @@
 [package]
 name = "passport-rs"
-version = "1.1.0"
+version = "1.1.1"
 authors = ["Edward Fitz Abucay <gh:@ffimnsr>"]
 edition = "2021"
 publish = false
