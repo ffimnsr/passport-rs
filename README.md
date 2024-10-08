@@ -4,4 +4,4 @@
 > of stories she could never retell.
 > - Anonymous
 
-The main back-end process for Open Sesame.
+The main back-end process for se-same.

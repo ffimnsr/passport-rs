@@ -1,7 +1,7 @@
 FROM docker.io/library/rust:latest AS builder
 WORKDIR /usr/src
 
-ARG MIDAS_VERSION=0.6.6
+ARG MIDAS_VERSION=0.6.7
 
 RUN rustup target add x86_64-unknown-linux-musl
 RUN apt update && apt install -y musl-tools
@@ -12,7 +12,7 @@ WORKDIR /usr/src/passport-rs
 COPY Cargo.toml Cargo.lock ./
 COPY src ./src
 
-RUN curl -sSL -O https://github.com/ffimnsr/midas-rs/releases/download/0.6.6/midas-${MIDAS_VERSION}-x86_64-unknown-linux-musl.tar.gz \
+RUN curl -sSL -O https://github.com/ffimnsr/midas-rs/releases/download/${MIDAS_VERSION}/midas-${MIDAS_VERSION}-x86_64-unknown-linux-musl.tar.gz \
   && tar -xzf midas-${MIDAS_VERSION}-x86_64-unknown-linux-musl.tar.gz \
   && mv midas-${MIDAS_VERSION}-x86_64-unknown-linux-musl/midas .
 
@@ -21,10 +21,10 @@ RUN cargo build --verbose --release --target x86_64-unknown-linux-musl
 FROM scratch
 ENV PORT=8000
 
-COPY --from=builder /usr/src/passport-rs/target/x86_64-unknown-linux-musl/release/passport-rs /app/passport-rs
-COPY --from=builder /usr/src/passport-rs/midas /app/midas
+COPY --from=builder /usr/src/passport-rs/target/x86_64-unknown-linux-musl/release/passport-rs /passport-rs
+COPY --from=builder /usr/src/passport-rs/midas /midas
 COPY migrations /migrations
 USER 1000
 
 EXPOSE 8000
-CMD ["/app/passport-rs"]
+CMD ["/passport-rs"]

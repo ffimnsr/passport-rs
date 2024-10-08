@@ -24,7 +24,7 @@ pub async fn get_all_jobs(pool: web::Data<PgPool>) -> Result<HttpResponse> {
         .await
         .map_err(error::ErrorInternalServerError)?;
 
-    Ok(HttpResponse::Ok().json(jobs))
+    Ok(HttpResponse::Ok().json(serde_json::json!({ "jobs": jobs })))
 }
 
 // Get a single job by ID

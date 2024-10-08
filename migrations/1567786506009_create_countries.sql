@@ -9,8 +9,7 @@ CREATE TABLE IF NOT EXISTS countries (
   currency VARCHAR(4),
   status SMALLINT,
   created_at TIMESTAMPTZ,
-  updated_at TIMESTAMPTZ,
-  UNIQUE(code)
+  updated_at TIMESTAMPTZ
 );
 
 -- !DOWN

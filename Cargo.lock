@@ -1753,7 +1753,7 @@ dependencies = [
 
 [[package]]
 name = "passport-rs"
-version = "1.1.1"
+version = "1.1.2"
 dependencies = [
  "actix-cors",
  "actix-web",
