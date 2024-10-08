@@ -5,6 +5,9 @@ CREATE TABLE IF NOT EXISTS jobs (
   id SERIAL PRIMARY KEY,
   title VARCHAR(300) NOT NULL UNIQUE,
   description TEXT NOT NULL,
+  industry_id INTEGER REFERENCES industries(id),
+  country_id INTEGER REFERENCES countries(id),
+  company_name TEXT NOT NULL,
   experience_level SMALLINT NOT NULL DEFAULT 1,
   salary_upper_limit TEXT,
   salary_lower_limit TEXT,
@@ -12,6 +15,8 @@ CREATE TABLE IF NOT EXISTS jobs (
   salary_timeframe SMALLINT,
   work_type SMALLINT NOT NULL DEFAULT 1,
   has_timetracker BOOLEAN DEFAULT FALSE,
+  is_remote BOOLEAN DEFAULT FALSE,
+  is_featured BOOLEAN DEFAULT FALSE,
   status SMALLINT DEFAULT 1,
   created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
