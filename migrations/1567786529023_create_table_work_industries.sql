@@ -1,12 +1,9 @@
 -- # Put the your SQL below migration seperator.
 -- !UP
 
-CREATE TABLE IF NOT EXISTS countries (
+CREATE TABLE IF NOT EXISTS work_industries (
   id SERIAL PRIMARY KEY,
   name TEXT,
-  code VARCHAR(4) UNIQUE,
-  idd_code VARCHAR(4),
-  currency VARCHAR(4),
   status SMALLINT,
   created_at TIMESTAMPTZ,
   updated_at TIMESTAMPTZ
@@ -14,4 +11,4 @@ CREATE TABLE IF NOT EXISTS countries (
 
 -- !DOWN
 
-DROP TABLE countries;
+DROP TABLE industries;

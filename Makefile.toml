@@ -71,6 +71,41 @@ install_crate = "hurl"
 command = "hurl"
 args = ["--tests", "tests/*.hurl"]
 
+[tasks.run-postgres]
+script = '''
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+packager=docker
+if ! command -v docker &>/dev/null; then
+  packager=podman
+fi
+
+$packager run -it --rm --name postgres -p 5432:5432 \
+  -e POSTGRES_PASSWORD=mysecretpassword \
+  -e POSTGRES_DB=startup \
+  -d postgres:17-alpine
+'''
+
+[tasks.run-postgres-persist]
+script = '''
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+packager=docker
+if ! command -v docker &>/dev/null; then
+  packager=podman
+fi
+
+$packager run -it --rm --name postgres -p 5432:5432 \
+  -v postgres-data:/var/lib/postgresql/data:z \
+  -e POSTGRES_PASSWORD=mysecretpassword \
+  -e POSTGRES_DB=startup \
+  -d postgres:17-alpine
+'''
+
 [tasks.create-package]
 script = '''
 #!/usr/bin/env bash

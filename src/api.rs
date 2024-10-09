@@ -17,6 +17,17 @@ pub async fn version(_req: HttpRequest) -> Result<HttpResponse> {
     Ok(HttpResponse::Ok().json(payload))
 }
 
+// Get all jobs list
+#[allow(dead_code)]
+pub async fn get_all_jobs_minimal(pool: web::Data<PgPool>) -> Result<HttpResponse> {
+    let mut pool = pool.acquire().await.map_err(error::ErrorInternalServerError)?;
+    let jobs = Job::all(&mut pool)
+        .await
+        .map_err(error::ErrorInternalServerError)?;
+
+    Ok(HttpResponse::Ok().json(jobs))
+}
+
 // Get all jobs
 pub async fn get_all_jobs(pool: web::Data<PgPool>) -> Result<HttpResponse> {
     let mut pool = pool.acquire().await.map_err(error::ErrorInternalServerError)?;

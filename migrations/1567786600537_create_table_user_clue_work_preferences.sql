@@ -1,7 +1,7 @@
 -- # Put the your SQL below migration seperator.
 -- !UP
 
-CREATE TABLE IF NOT EXISTS user_work_preferences (
+CREATE TABLE IF NOT EXISTS user_clue_work_preferences (
   id SERIAL PRIMARY KEY,
   user_id INTEGER REFERENCES users(id),
   interests SMALLINT[],

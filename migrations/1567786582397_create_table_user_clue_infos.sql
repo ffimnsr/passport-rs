@@ -1,17 +1,16 @@
 -- # Put the your SQL below migration seperator.
 -- !UP
 
-CREATE TABLE IF NOT EXISTS project_members (
+CREATE TABLE IF NOT EXISTS user_clue_infos (
   id SERIAL PRIMARY KEY,
-  project_id INTEGER REFERENCES projects(id),
   user_id INTEGER REFERENCES users(id),
-  start_date DATE,
-  end_date DATE,
-  status SMALLINT,
+  gender SMALLINT,
+  birth_date DATE,
+  tax_identification_no VARCHAR(60),
   created_at TIMESTAMPTZ,
   updated_at TIMESTAMPTZ
 );
 
 -- !DOWN
 
-DROP TABLE project_members;
+DROP TABLE user_clues;

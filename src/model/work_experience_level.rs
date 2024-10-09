@@ -3,7 +3,7 @@ use serde::Deserialize;
 
 #[allow(dead_code)]
 #[derive(Debug, Deserialize, Clone)]
-pub struct WorkFunction {
+pub struct WorkExperienceLevel {
     pub id: i32,
     pub name: String,
     pub status: i32,
