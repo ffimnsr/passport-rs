@@ -2,11 +2,10 @@
 -- !UP
 
 CREATE TABLE IF NOT EXISTS organizations (
-  id SERIAL PRIMARY KEY,
-  public_id VARCHAR(90) UNIQUE,
+  id BIGSERIAL PRIMARY KEY,
   name TEXT NOT NULL,
-  is_verified BOOLEAN DEFAULT FALSE,
-  is_featured BOOLEAN DEFAULT FALSE,
+  is_verified BOOL DEFAULT FALSE,
+  is_featured BOOL DEFAULT FALSE,
   status SMALLINT DEFAULT 1,
   created_at TIMESTAMPTZ,
   updated_at TIMESTAMPTZ
@@ -20,4 +19,3 @@ VALUES
 -- !DOWN
 
 DROP TABLE organizations;
-corporation

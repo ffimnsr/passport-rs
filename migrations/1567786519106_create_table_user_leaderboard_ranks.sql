@@ -24,4 +24,4 @@ VALUES
 
 -- !DOWN
 
-DROP TABLE ranks;
+DROP TABLE user_leaderboard_ranks;

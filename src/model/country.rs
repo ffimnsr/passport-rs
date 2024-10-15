@@ -9,7 +9,7 @@ pub struct Country {
     pub code: String,
     pub idd_code: String,
     pub currency: String,
-    pub status: i32,
+    pub status: i16,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }

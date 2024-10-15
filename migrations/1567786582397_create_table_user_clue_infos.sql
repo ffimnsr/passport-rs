@@ -2,8 +2,8 @@
 -- !UP
 
 CREATE TABLE IF NOT EXISTS user_clue_infos (
-  id SERIAL PRIMARY KEY,
-  user_id INTEGER REFERENCES users(id),
+  id BIGSERIAL PRIMARY KEY,
+  user_id BIGINT REFERENCES users(id),
   gender SMALLINT,
   birth_date DATE,
   tax_identification_no VARCHAR(60),
@@ -13,4 +13,4 @@ CREATE TABLE IF NOT EXISTS user_clue_infos (
 
 -- !DOWN
 
-DROP TABLE user_clues;
+DROP TABLE user_clue_infos;

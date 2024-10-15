@@ -2,8 +2,8 @@
 -- !UP
 
 CREATE TABLE IF NOT EXISTS user_clue_work_preferences (
-  id SERIAL PRIMARY KEY,
-  user_id INTEGER REFERENCES users(id),
+  id BIGSERIAL PRIMARY KEY,
+  user_id BIGINT REFERENCES users(id),
   interests SMALLINT[],
   project_limit SMALLINT,
   project_limit_updated_at TIMESTAMPTZ,
@@ -13,4 +13,4 @@ CREATE TABLE IF NOT EXISTS user_clue_work_preferences (
 
 -- !DOWN
 
-DROP TABLE user_work_preferences;
+DROP TABLE user_clue_work_preferences;

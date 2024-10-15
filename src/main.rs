@@ -2,15 +2,15 @@ use std::{env, io};
 
 use actix_cors::Cors;
 use actix_web::http::{header, Method};
-use actix_web::{
-    error, get, guard, middleware, web, App, HttpRequest, HttpResponse, HttpServer, Responder, Result,
-};
+use actix_web::{get, guard, middleware, web, App, HttpRequest, HttpResponse, HttpServer, Responder, Result};
 use dotenv::dotenv;
 use listenfd::ListenFd;
 
 mod api;
 mod db;
 mod model;
+mod service_error;
+mod utils;
 
 const PKG_VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -26,7 +26,10 @@ async fn default_handler(_req_method: Method) -> Result<impl Responder> {
     Ok(HttpResponse::MethodNotAllowed().finish())
 }
 
-fn json_error_handler(err: error::JsonPayloadError, _req: &HttpRequest) -> error::Error {
+fn json_error_handler(
+    err: actix_web::error::JsonPayloadError,
+    _req: &HttpRequest,
+) -> actix_web::error::Error {
     use actix_web::error::JsonPayloadError;
 
     let detail = err.to_string();
@@ -34,11 +37,11 @@ fn json_error_handler(err: error::JsonPayloadError, _req: &HttpRequest) -> error
         JsonPayloadError::ContentType => HttpResponse::UnsupportedMediaType().body(detail),
         JsonPayloadError::Deserialize(json_err) if json_err.is_data() => {
             HttpResponse::UnprocessableEntity().body(detail)
-        }
+        },
         _ => HttpResponse::BadRequest().body(detail),
     };
 
-    error::InternalError::from_response(err, resp).into()
+    actix_web::error::InternalError::from_response(err, resp).into()
 }
 
 #[actix_web::main]
@@ -72,12 +75,15 @@ async fn main() -> io::Result<()> {
                     .max_age(3600),
             )
             .service(index)
+            .service(web::resource("/search-jobs").route(web::get().to(api::search_jobs)))
+            .service(web::resource("/jobs-minimal").route(web::get().to(api::get_all_jobs_minimal)))
             .service(web::resource("/jobs").route(web::get().to(api::get_all_jobs)))
             .service(web::resource("/jobs/{id}").route(web::get().to(api::get_job)))
             .service(web::resource("/mgmt/jobs").route(web::post().to(api::create_job)))
             .service(web::resource("/mgmt/jobs/{id}").route(web::delete().to(api::delete_job)))
             .service(api::create_fake_job)
             .service(web::resource("/version").guard(guard::Get()).to(api::version))
+            .service(web::resource("/health").guard(guard::Get()).to(api::health_check))
             .default_service(web::to(default_handler))
     };
 

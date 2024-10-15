@@ -85,7 +85,7 @@ fi
 $packager run -it --rm --name postgres -p 5432:5432 \
   -e POSTGRES_PASSWORD=mysecretpassword \
   -e POSTGRES_DB=startup \
-  -d postgres:17-alpine
+  -d docker.io/library/postgres:17-alpine
 '''
 
 [tasks.run-postgres-persist]
@@ -103,7 +103,35 @@ $packager run -it --rm --name postgres -p 5432:5432 \
   -v postgres-data:/var/lib/postgresql/data:z \
   -e POSTGRES_PASSWORD=mysecretpassword \
   -e POSTGRES_DB=startup \
-  -d postgres:17-alpine
+  -d docker.io/library/postgres:17-alpine
+'''
+
+[tasks.psql]
+script = '''
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+packager=docker
+if ! command -v docker &>/dev/null; then
+  packager=podman
+fi
+
+$packager exec -it postgres psql -U postgres -d startup --single-line
+'''
+
+[tasks.psql-ls-tables]
+script = '''
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+packager=docker
+if ! command -v docker &>/dev/null; then
+  packager=podman
+fi
+
+$packager exec -it postgres psql -U postgres -d startup -c "\dt+"
 '''
 
 [tasks.create-package]

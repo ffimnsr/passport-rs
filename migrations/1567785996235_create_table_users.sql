@@ -2,7 +2,7 @@
 -- !UP
 
 CREATE TABLE IF NOT EXISTS users (
-  id SERIAL PRIMARY KEY,
+  id BIGSERIAL PRIMARY KEY,
   public_id VARCHAR(90) UNIQUE,
   created_at TIMESTAMPTZ,
   updated_at TIMESTAMPTZ

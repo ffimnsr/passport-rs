@@ -3,6 +3,7 @@ use actix_web::{
     get, web, HttpRequest, HttpResponse, Result,
 };
 use log::debug;
+use serde::Deserialize;
 use sqlx::PgPool;
 
 use crate::model::{job::NewJob, Job};
@@ -17,8 +18,27 @@ pub async fn version(_req: HttpRequest) -> Result<HttpResponse> {
     Ok(HttpResponse::Ok().json(payload))
 }
 
+// Health check endpoint
+pub async fn health_check() -> Result<HttpResponse> {
+    Ok(HttpResponse::Ok().finish())
+}
+
+#[derive(Debug, Deserialize)]
+pub struct SimpleSearch {
+    query: String,
+}
+
+// Search for jobs
+pub async fn search_jobs(pool: web::Data<PgPool>, search: web::Query<SimpleSearch>) -> Result<HttpResponse> {
+    let mut pool = pool.acquire().await.map_err(error::ErrorInternalServerError)?;
+    let jobs = Job::search(&mut pool, &search.query)
+        .await
+        .map_err(error::ErrorInternalServerError)?;
+
+    Ok(HttpResponse::Ok().json(jobs))
+}
+
 // Get all jobs list
-#[allow(dead_code)]
 pub async fn get_all_jobs_minimal(pool: web::Data<PgPool>) -> Result<HttpResponse> {
     let mut pool = pool.acquire().await.map_err(error::ErrorInternalServerError)?;
     let jobs = Job::all(&mut pool)
@@ -31,17 +51,18 @@ pub async fn get_all_jobs_minimal(pool: web::Data<PgPool>) -> Result<HttpRespons
 // Get all jobs
 pub async fn get_all_jobs(pool: web::Data<PgPool>) -> Result<HttpResponse> {
     let mut pool = pool.acquire().await.map_err(error::ErrorInternalServerError)?;
+    let limit = 25;
     let jobs = Job::all(&mut pool)
         .await
         .map_err(error::ErrorInternalServerError)?;
 
-    Ok(HttpResponse::Ok().json(serde_json::json!({ "jobs": jobs })))
+    Ok(HttpResponse::Ok().json(serde_json::json!({ "jobs": jobs, "count": limit })))
 }
 
 // Get a single job by ID
-pub async fn get_job(pool: web::Data<PgPool>, id: web::Path<i32>) -> Result<HttpResponse> {
+pub async fn get_job(pool: web::Data<PgPool>, id: web::Path<String>) -> Result<HttpResponse> {
     let mut pool = pool.acquire().await.map_err(error::ErrorInternalServerError)?;
-    let job = Job::get_with_id(id.into_inner(), &mut pool)
+    let job = Job::get_with_id(&mut pool, &id)
         .await
         .map_err(error::ErrorInternalServerError)?;
 
@@ -64,7 +85,7 @@ pub async fn create_job(pool: web::Data<PgPool>, job: web::Json<NewJob>) -> Resu
     // Validate the job data
     job.validate().map_err(ErrorBadRequest)?;
 
-    let job_id = Job::insert(job, &mut pool)
+    let job_id = Job::insert(&mut pool, job)
         .await
         .inspect_err(|e| debug!("Error inserting job: {:?}", e))
         .map_err(error::ErrorInternalServerError)?;
@@ -82,10 +103,10 @@ pub async fn create_fake_job(pool: web::Data<PgPool>) -> Result<HttpResponse> {
     let mut pool = pool.acquire().await.map_err(error::ErrorInternalServerError)?;
     let job = NewJob {
         title: Profession().fake(),
-        description: Sentence(1..5).fake(),
+        description: Sentence(1..30).fake(),
     };
 
-    let job_id = Job::insert(job, &mut pool)
+    let job_id = Job::insert(&mut pool, job)
         .await
         .map_err(error::ErrorInternalServerError)?;
 
@@ -93,9 +114,9 @@ pub async fn create_fake_job(pool: web::Data<PgPool>) -> Result<HttpResponse> {
 }
 
 // Delete a job by ID
-pub async fn delete_job(pool: web::Data<PgPool>, id: web::Path<i32>) -> Result<HttpResponse> {
+pub async fn delete_job(pool: web::Data<PgPool>, id: web::Path<String>) -> Result<HttpResponse> {
     let mut pool = pool.acquire().await.map_err(error::ErrorInternalServerError)?;
-    Job::delete_with_id(id.into_inner(), &mut pool)
+    Job::delete_with_id(&mut pool, &id)
         .await
         .map_err(error::ErrorInternalServerError)?;
 

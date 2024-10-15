@@ -2,10 +2,10 @@
 -- !UP
 
 CREATE TABLE IF NOT EXISTS user_work_experiences (
-  id SERIAL PRIMARY KEY,
-  user_id INTEGER REFERENCES users(id),
+  id BIGSERIAL PRIMARY KEY,
+  user_id BIGINT REFERENCES users(id),
   title TEXT,
-  organization TEXT,
+  organization VARCHAR(200),
   location TEXT,
   from_date DATE,
   to_date DATE,

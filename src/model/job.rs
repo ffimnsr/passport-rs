@@ -1,25 +1,51 @@
 use chrono::{DateTime, Utc};
-use futures::StreamExt;
 use serde::{Deserialize, Serialize};
 use sqlx::PgConnection;
 use validator::Validate;
+use cuid2::cuid;
+
+use super::clean_input;
 
 #[derive(Debug, Serialize, Deserialize, sqlx::Type)]
-#[repr(i16)]
+#[sqlx(type_name = "work_experience_level", rename_all = "snake_case")]
 pub enum ExperienceLevel {
-    Intern = 1,
-    Junior = 2,
-    Mid = 3,
-    Senior = 4,
-    Lead = 5,
+    Intern,
+    EntryLevel,
+    MidLevel,
+    SeniorLevel,
+    Executive,
 }
 
 #[derive(Debug, Serialize, Deserialize, sqlx::Type)]
-#[repr(i16)]
-pub enum WorkType {
-    FullTime = 1,
-    PartTime = 2,
-    Contract = 3,
+#[sqlx(type_name = "work_contract_type", rename_all = "snake_case")]
+pub enum ContractType {
+    FullTime,
+    PartTime,
+    FreelanceContract,
+    FixedTermContract,
+    ZeroHourContract,
+    Internship,
+}
+
+#[derive(Debug, Serialize, Deserialize, sqlx::Type)]
+#[sqlx(type_name = "salary_timeframe", rename_all = "snake_case")]
+pub enum SalaryTimeframe {
+    Hourly,
+    Daily,
+    Weekly,
+    SemiMonthly,
+    Monthly,
+    Quarterly,
+    Annually,
+}
+
+#[derive(Debug, Serialize, Deserialize, sqlx::Type)]
+#[sqlx(type_name = "salary_detail")]
+pub struct SalaryDetail {
+    upper_limit: String,
+    lower_limit: String,
+    currency: String,
+    timeframe: SalaryTimeframe,
 }
 
 #[derive(Debug, Serialize, Deserialize, sqlx::Type)]
@@ -39,17 +65,19 @@ pub struct NewJob {
 
 #[derive(Debug, Deserialize, Serialize, sqlx::FromRow)]
 pub struct Job {
-    pub id: i32,
+    pub id: String,
     pub title: String,
     pub description: String,
-    pub experience_level: Option<ExperienceLevel>,
-    pub salary_upper_limit: Option<String>,
-    pub salary_lower_limit: Option<String>,
-    pub salary_currency: Option<String>,
-    pub salary_timeframe: Option<String>,
-    pub work_type: Option<WorkType>,
-    pub has_timetracker: Option<bool>,
-    pub status: Option<JobStatus>,
+    pub industry_id: i32,
+    pub country_id: i32,
+    pub organization_id: i64,
+    pub work_experience_level: ExperienceLevel,
+    pub work_contract_type: ContractType,
+    pub salary: Option<SalaryDetail>,
+    pub has_timetracker: bool,
+    pub is_remote: bool,
+    pub is_featured: bool,
+    pub status: JobStatus,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
@@ -58,15 +86,20 @@ pub type Jobs = Vec<Job>;
 
 impl Job {
     pub async fn all(conn: &mut PgConnection) -> sqlx::Result<Jobs> {
-        let jobs = sqlx::query_as::<_, Job>("SELECT * FROM jobs").fetch(conn);
-        let jobs = jobs
-            .map(|j| j.expect("Error parsing job"))
-            .collect::<Jobs>()
-            .await;
+        let jobs = sqlx::query_as::<_, Job>("SELECT * FROM jobs LIMIT 25")
+            .fetch_all(conn)
+            .await?;
         Ok(jobs)
     }
 
-    pub async fn get_with_id(id: i32, conn: &mut PgConnection) -> sqlx::Result<Job> {
+    pub async fn search(conn: &mut PgConnection, query: &str) -> sqlx::Result<Jobs> {
+        let cleaned_input = clean_input(query);
+        let query = format!("SELECT * FROM jobs WHERE fts @@ to_tsquery('english', '{cleaned_input}') LIMIT 25");
+        let jobs = sqlx::query_as::<_, Job>(&query).fetch_all(conn).await?;
+        Ok(jobs)
+    }
+
+    pub async fn get_with_id(conn: &mut PgConnection, id: &str) -> sqlx::Result<Job> {
         let job = sqlx::query_as::<_, Job>("SELECT * FROM jobs WHERE id = $1")
             .bind(id)
             .fetch_one(conn)
@@ -74,9 +107,10 @@ impl Job {
         Ok(job)
     }
 
-    pub async fn insert(data: NewJob, conn: &mut PgConnection) -> sqlx::Result<i32> {
-        let row: (i32,) =
-            sqlx::query_as("INSERT INTO jobs (title, description) VALUES ($1, $2) RETURNING id")
+    pub async fn insert(conn: &mut PgConnection, data: NewJob) -> sqlx::Result<String> {
+        let row: (String,) =
+            sqlx::query_as("INSERT INTO jobs (id, title, description) VALUES ($1, $2, $3) RETURNING id")
+                .bind(cuid())
                 .bind(data.title)
                 .bind(data.description)
                 .fetch_one(conn)
@@ -84,7 +118,7 @@ impl Job {
         Ok(row.0)
     }
 
-    pub async fn delete_with_id(id: i32, conn: &mut PgConnection) -> sqlx::Result<()> {
+    pub async fn delete_with_id(conn: &mut PgConnection, id: &str) -> sqlx::Result<()> {
         sqlx::query("DELETE FROM jobs WHERE id = $1")
             .bind(id)
             .execute(conn)
@@ -108,13 +142,7 @@ mod tests {
                 id SERIAL PRIMARY KEY,
                 title VARCHAR(300) NOT NULL UNIQUE,
                 description TEXT NOT NULL,
-                experience_level SMALLINT NOT NULL DEFAULT 1,
-                salary_upper_limit TEXT,
-                salary_lower_limit TEXT,
-                salary_currency VARCHAR(10),
-                salary_timeframe SMALLINT,
-                work_type SMALLINT NOT NULL DEFAULT 1,
-                has_timetracker BOOLEAN DEFAULT FALSE,
+                has_timetracker BOOL DEFAULT FALSE,
                 status SMALLINT DEFAULT 1,
                 created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP

@@ -6,7 +6,7 @@ use serde::Deserialize;
 pub struct WorkIndustry {
     pub id: i32,
     pub name: String,
-    pub status: i32,
+    pub status: i16,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
