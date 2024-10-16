@@ -1,10 +1,11 @@
 use chrono::{DateTime, Utc};
+use cuid2::cuid;
 use serde::{Deserialize, Serialize};
 use sqlx::PgConnection;
 use validator::Validate;
-use cuid2::cuid;
 
 use super::clean_input;
+use super::PaginationParams;
 
 #[derive(Debug, Serialize, Deserialize, sqlx::Type)]
 #[sqlx(type_name = "work_experience_level", rename_all = "snake_case")]
@@ -84,17 +85,25 @@ pub struct Job {
 
 pub type Jobs = Vec<Job>;
 
+#[allow(dead_code, unused_variables)]
 impl Job {
-    pub async fn all(conn: &mut PgConnection) -> sqlx::Result<Jobs> {
-        let jobs = sqlx::query_as::<_, Job>("SELECT * FROM jobs LIMIT 25")
-            .fetch_all(conn)
-            .await?;
+    #[allow(unused_variables)]
+    pub async fn list(conn: &mut PgConnection, opt: Option<PaginationParams>) -> sqlx::Result<Jobs> {
+        let query = "SELECT * FROM jobs".to_string();
+        let query = opt.map(|x| x.paginate_query(query.clone())).unwrap_or(query);
+        let jobs = sqlx::query_as::<_, Job>(&query).fetch_all(conn).await?;
         Ok(jobs)
     }
 
-    pub async fn search(conn: &mut PgConnection, query: &str) -> sqlx::Result<Jobs> {
+    pub async fn search(
+        conn: &mut PgConnection,
+        query: &str,
+        opt: Option<PaginationParams>,
+    ) -> sqlx::Result<Jobs> {
         let cleaned_input = clean_input(query);
-        let query = format!("SELECT * FROM jobs WHERE fts @@ to_tsquery('english', '{cleaned_input}') LIMIT 25");
+        let query = format!("SELECT * FROM jobs WHERE fts @@ to_tsquery('english', '{cleaned_input}')");
+        let query = opt.map(|x| x.paginate_query(query.clone())).unwrap_or(query);
+
         let jobs = sqlx::query_as::<_, Job>(&query).fetch_all(conn).await?;
         Ok(jobs)
     }
@@ -138,22 +147,64 @@ mod tests {
     async fn test_get_all_jobs(pool: PgPool) -> sqlx::Result<()> {
         let mut conn = pool.acquire().await?;
         let query = indoc! {"
-            CREATE TABLE IF NOT EXISTS jobs (
-                id SERIAL PRIMARY KEY,
-                title VARCHAR(300) NOT NULL UNIQUE,
+            CREATE TYPE work_experience_level AS ENUM (
+                'intern',
+                'entry_level',
+                'mid_level',
+                'senior_level',
+                'executive'
+            );
+
+            CREATE TYPE work_contract_type AS ENUM (
+                'full_time',
+                'part_time',
+                'freelance_contract',
+                'fixed_term_contract',
+                'zero_hour_contract',
+                'internship'
+            );
+
+            CREATE TYPE salary_timeframe AS ENUM (
+                'hourly',
+                'daily',
+                'weekly',
+                'semi_monthly',
+                'monthly',
+                'quarterly',
+                'annually'
+            );
+
+            CREATE TYPE salary_detail AS (
+                upper_limit TEXT,
+                lower_limit TEXT,
+                currency VARCHAR(10),
+                timeframe salary_timeframe
+            );
+
+            CREATE TEMP TABLE IF NOT EXISTS jobs (
+                id VARCHAR(24) PRIMARY KEY,
+                title VARCHAR(300) NOT NULL,
                 description TEXT NOT NULL,
+                industry_id INT DEFAULT 1000,
+                country_id INT DEFAULT 1,
+                organization_id BIGINT DEFAULT 1,
+                work_experience_level work_experience_level DEFAULT 'intern',
+                work_contract_type work_contract_type DEFAULT 'full_time',
+                salary salary_detail,
                 has_timetracker BOOL DEFAULT FALSE,
+                is_remote BOOL DEFAULT TRUE,
+                is_featured BOOL DEFAULT FALSE,
                 status SMALLINT DEFAULT 1,
                 created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
             );
 
-            INSERT INTO jobs (title, description) VALUES ('foo', 'bar');
+            INSERT INTO jobs (id, title, description) VALUES ('foobar', 'foo', 'bar');
         "};
 
         conn.execute(query).await?;
 
-        let foo = Job::all(&mut conn).await?;
+        let foo = Job::list(&mut conn, None).await?;
         assert_eq!(foo.len(), 1);
         assert_eq!(foo[0].title, "foo");
         assert_eq!(foo[0].description, "bar");

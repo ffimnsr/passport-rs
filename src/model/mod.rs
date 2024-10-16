@@ -17,3 +17,34 @@ pub fn clean_input(input: &str) -> String {
         .replace("%", "\\%")
         .replace("_", "\\_")
 }
+
+#[derive(Debug)]
+pub struct PaginationParams {
+    pub limit: Option<isize>,
+    pub offset: Option<isize>,
+}
+
+#[allow(dead_code)]
+impl PaginationParams {
+    pub fn new(limit: isize, offset: isize) -> Self {
+        Self {
+            limit: Some(limit),
+            offset: Some(offset),
+        }
+    }
+
+    pub fn paginate_query<S: Into<String>>(&self, query: S) -> String {
+        let mut query = query.into();
+        if let Some(limit) = self.limit {
+            let payload = format!(" LIMIT {limit}");
+            query.push_str(&payload);
+        }
+
+        if let Some(offset) = self.offset {
+            let payload = format!(" OFFSET {offset}");
+            query.push_str(&payload);
+        }
+
+        query
+    }
+}

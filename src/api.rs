@@ -6,7 +6,7 @@ use log::debug;
 use serde::Deserialize;
 use sqlx::PgPool;
 
-use crate::model::{job::NewJob, Job};
+use crate::model::{job::NewJob, Job, PaginationParams};
 
 const PKG_VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -31,7 +31,7 @@ pub struct SimpleSearch {
 // Search for jobs
 pub async fn search_jobs(pool: web::Data<PgPool>, search: web::Query<SimpleSearch>) -> Result<HttpResponse> {
     let mut pool = pool.acquire().await.map_err(error::ErrorInternalServerError)?;
-    let jobs = Job::search(&mut pool, &search.query)
+    let jobs = Job::search(&mut pool, &search.query, None)
         .await
         .map_err(error::ErrorInternalServerError)?;
 
@@ -41,7 +41,8 @@ pub async fn search_jobs(pool: web::Data<PgPool>, search: web::Query<SimpleSearc
 // Get all jobs list
 pub async fn get_all_jobs_minimal(pool: web::Data<PgPool>) -> Result<HttpResponse> {
     let mut pool = pool.acquire().await.map_err(error::ErrorInternalServerError)?;
-    let jobs = Job::all(&mut pool)
+    let limit = 25;
+    let jobs = Job::list(&mut pool, Some(PaginationParams::new(limit, 0)))
         .await
         .map_err(error::ErrorInternalServerError)?;
 
@@ -52,7 +53,7 @@ pub async fn get_all_jobs_minimal(pool: web::Data<PgPool>) -> Result<HttpRespons
 pub async fn get_all_jobs(pool: web::Data<PgPool>) -> Result<HttpResponse> {
     let mut pool = pool.acquire().await.map_err(error::ErrorInternalServerError)?;
     let limit = 25;
-    let jobs = Job::all(&mut pool)
+    let jobs = Job::list(&mut pool, Some(PaginationParams::new(limit, 0)))
         .await
         .map_err(error::ErrorInternalServerError)?;
 
