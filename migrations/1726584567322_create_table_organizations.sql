@@ -3,6 +3,7 @@
 
 CREATE TABLE IF NOT EXISTS organizations (
   id BIGSERIAL PRIMARY KEY,
+  public_id TEXT NOT NULL UNIQUE,
   name TEXT NOT NULL,
   is_verified BOOL DEFAULT FALSE,
   is_featured BOOL DEFAULT FALSE,

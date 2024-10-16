@@ -4,7 +4,7 @@ install_crate = "systemfd"
 [tasks.install-cargo-watch]
 install_crate = "cargo-watch"
 
-[tasks.install-git-hooks]
+[tasks.install-githooks]
 command = "git"
 args = ["config", "--local", "core.hooksPath", ".githooks/"]
 
@@ -29,7 +29,7 @@ command = "systemfd"
 args = [
   "--no-pid",
   "-s",
-  "http::5000",
+  "http::6050",
   "--",
   "cargo",
   "watch",
