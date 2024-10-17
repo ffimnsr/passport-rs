@@ -8,14 +8,14 @@ CREATE TABLE IF NOT EXISTS organizations (
   is_verified BOOL DEFAULT FALSE,
   is_featured BOOL DEFAULT FALSE,
   status SMALLINT DEFAULT 1,
-  created_at TIMESTAMPTZ,
-  updated_at TIMESTAMPTZ
+  created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
 INSERT INTO organizations
-  (public_id, name, is_verified, is_featured, created_at, updated_at)
+  (public_id, name, is_verified, is_featured)
 VALUES
-  ('acme', 'Acme Corporation', TRUE, FALSE, NOW(), NOW());
+  ('acme', 'Acme Corporation', TRUE, FALSE);
 
 -- !DOWN
 

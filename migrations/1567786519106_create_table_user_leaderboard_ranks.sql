@@ -4,9 +4,9 @@
 CREATE TABLE IF NOT EXISTS user_leaderboard_ranks (
   id SERIAL PRIMARY KEY,
   name TEXT UNIQUE,
-  status SMALLINT,
-  created_at TIMESTAMPTZ,
-  updated_at TIMESTAMPTZ
+  status SMALLINT DEFAULT 1,
+  created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
 INSERT INTO user_leaderboard_ranks

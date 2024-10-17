@@ -7,8 +7,8 @@ CREATE TABLE IF NOT EXISTS user_clue_infos (
   gender SMALLINT,
   birth_date DATE,
   tax_identification_no VARCHAR(60),
-  created_at TIMESTAMPTZ,
-  updated_at TIMESTAMPTZ
+  created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
 -- !DOWN

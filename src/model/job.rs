@@ -85,7 +85,7 @@ pub struct Job {
 
 pub type Jobs = Vec<Job>;
 
-#[allow(dead_code, unused_variables)]
+#[allow(dead_code)]
 impl Job {
     #[allow(unused_variables)]
     pub async fn list(conn: &mut PgConnection, opt: Option<PaginationParams>) -> sqlx::Result<Jobs> {
@@ -140,12 +140,12 @@ impl Job {
 mod tests {
     use indoc::indoc;
     use sqlx::{Executor, PgPool};
+    use sqlx::postgres::PgQueryResult;
+    use sqlx::error::Error;
 
     use super::*;
 
-    #[sqlx::test(migrations = false)]
-    async fn test_get_all_jobs(pool: PgPool) -> sqlx::Result<()> {
-        let mut conn = pool.acquire().await?;
+    async fn setup_job_table(conn: &mut PgConnection) -> Result<PgQueryResult, Error> {
         let query = indoc! {"
             CREATE TYPE work_experience_level AS ENUM (
                 'intern',
@@ -199,15 +199,48 @@ mod tests {
                 updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
             );
 
+            ALTER TABLE jobs
+            ADD COLUMN fts tsvector
+            GENERATED ALWAYS
+            AS (to_tsvector('english', description || ' ' || title)) STORED;
+
+            CREATE INDEX jobs_fts_idx ON jobs USING gin (fts);
+
             INSERT INTO jobs (id, title, description) VALUES ('foobar', 'foo', 'bar');
         "};
 
-        conn.execute(query).await?;
+        conn.execute(query).await
+    }
 
+    #[sqlx::test(migrations = false)]
+    async fn test_list(pool: PgPool) -> sqlx::Result<()> {
+        let mut conn = pool.acquire().await?;
+        setup_job_table(&mut conn).await?;
         let foo = Job::list(&mut conn, None).await?;
         assert_eq!(foo.len(), 1);
         assert_eq!(foo[0].title, "foo");
         assert_eq!(foo[0].description, "bar");
+        Ok(())
+    }
+
+    #[sqlx::test(migrations = false)]
+    async fn test_search(pool: PgPool) -> sqlx::Result<()> {
+        let mut conn = pool.acquire().await?;
+        setup_job_table(&mut conn).await?;
+        let foo = Job::search(&mut conn, "foo", None).await?;
+        assert_eq!(foo.len(), 1);
+        assert_eq!(foo[0].title, "foo");
+        assert_eq!(foo[0].description, "bar");
+        Ok(())
+    }
+
+    #[sqlx::test(migrations = false)]
+    async fn test_get_with_id(pool: PgPool) -> sqlx::Result<()> {
+        let mut conn = pool.acquire().await?;
+        setup_job_table(&mut conn).await?;
+        let foo = Job::get_with_id(&mut conn, "foobar").await?;
+        assert_eq!(foo.title, "foo");
+        assert_eq!(foo.description, "bar");
         Ok(())
     }
 }

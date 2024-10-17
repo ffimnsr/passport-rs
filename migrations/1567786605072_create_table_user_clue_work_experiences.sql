@@ -10,8 +10,8 @@ CREATE TABLE IF NOT EXISTS user_work_experiences (
   from_date DATE,
   to_date DATE,
   description TEXT,
-  created_at TIMESTAMPTZ,
-  updated_at TIMESTAMPTZ
+  created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
 -- !DOWN
