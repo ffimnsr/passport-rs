@@ -91,8 +91,8 @@ impl Job {
     pub async fn list(conn: &mut PgConnection, opt: Option<PaginationParams>) -> sqlx::Result<Jobs> {
         let query = "SELECT * FROM jobs".to_string();
         let query = opt.map(|x| x.paginate_query(query.clone())).unwrap_or(query);
-        let jobs = sqlx::query_as::<_, Job>(&query).fetch_all(conn).await?;
-        Ok(jobs)
+        let data = sqlx::query_as::<_, Job>(&query).fetch_all(conn).await?;
+        Ok(data)
     }
 
     pub async fn search(
@@ -103,17 +103,16 @@ impl Job {
         let cleaned_input = clean_input(query);
         let query = format!("SELECT * FROM jobs WHERE fts @@ to_tsquery('english', '{cleaned_input}')");
         let query = opt.map(|x| x.paginate_query(query.clone())).unwrap_or(query);
-
-        let jobs = sqlx::query_as::<_, Job>(&query).fetch_all(conn).await?;
-        Ok(jobs)
+        let data = sqlx::query_as::<_, Job>(&query).fetch_all(conn).await?;
+        Ok(data)
     }
 
     pub async fn get_with_id(conn: &mut PgConnection, id: &str) -> sqlx::Result<Job> {
-        let job = sqlx::query_as::<_, Job>("SELECT * FROM jobs WHERE id = $1")
+        let data = sqlx::query_as::<_, Job>("SELECT * FROM jobs WHERE id = $1")
             .bind(id)
             .fetch_one(conn)
             .await?;
-        Ok(job)
+        Ok(data)
     }
 
     pub async fn insert(conn: &mut PgConnection, data: NewJob) -> sqlx::Result<String> {

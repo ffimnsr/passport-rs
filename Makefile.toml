@@ -8,7 +8,7 @@ install_crate = "cargo-watch"
 command = "git"
 args = ["config", "--local", "core.hooksPath", ".githooks/"]
 
-[tasks.serve]
+[tasks.nt-serve]
 command = "systemfd"
 args = [
   "--no-pid",
@@ -58,7 +58,7 @@ args = [
 ]
 dependencies = ["install-cargo-watch"]
 
-[tasks.trigger]
+[tasks.serve]
 run_task = { name = ["trigger-touch", "trigger-serve"], parallel = true }
 
 [tasks.migrate]
