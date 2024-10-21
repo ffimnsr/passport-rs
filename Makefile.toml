@@ -58,8 +58,11 @@ args = [
 ]
 dependencies = ["install-cargo-watch"]
 
-[tasks.serve]
+[tasks.trigger]
 run_task = { name = ["trigger-touch", "trigger-serve"], parallel = true }
+
+[tasks.s]
+alias="trigger"
 
 [tasks.migrate]
 install_crate = "midas"
