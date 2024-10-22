@@ -1,14 +1,15 @@
 pub mod country;
 pub mod job;
 pub mod organization;
-pub mod user_leaderboard_rank;
 pub mod user;
+pub mod user_leaderboard_rank;
 pub mod work_function;
 pub mod work_industry;
 
 pub use country::Country;
 pub use job::Job;
 pub use job::NewJob;
+pub use job::UpdateJob;
 pub use organization::Organization;
 pub use work_function::WorkFunction;
 pub use work_industry::WorkIndustry;

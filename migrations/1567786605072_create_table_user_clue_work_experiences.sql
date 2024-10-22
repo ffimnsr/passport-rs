@@ -3,7 +3,7 @@
 
 CREATE TABLE IF NOT EXISTS user_work_experiences (
   id BIGSERIAL PRIMARY KEY,
-  user_id BIGINT REFERENCES users(id),
+  user_id BIGINT REFERENCES users(id) ON DELETE CASCADE,
   title TEXT,
   organization VARCHAR(200),
   location TEXT,

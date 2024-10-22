@@ -3,7 +3,7 @@
 
 CREATE TABLE IF NOT EXISTS user_clue_infos (
   id BIGSERIAL PRIMARY KEY,
-  user_id BIGINT REFERENCES users(id),
+  user_id BIGINT REFERENCES users(id) ON DELETE CASCADE,
   gender SMALLINT,
   birth_date DATE,
   tax_identification_no VARCHAR(60),

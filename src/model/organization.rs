@@ -40,9 +40,9 @@ impl Organization {
 #[cfg(test)]
 mod tests {
     use indoc::indoc;
-    use sqlx::{Executor, PgPool};
-    use sqlx::postgres::PgQueryResult;
     use sqlx::error::Error;
+    use sqlx::postgres::PgQueryResult;
+    use sqlx::{Executor, PgPool};
 
     use super::*;
 

@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS jobs (
   description TEXT NOT NULL,
   industry_id INT REFERENCES work_industries(id) DEFAULT 1000,
   country_id INT REFERENCES countries(id) DEFAULT 1,
-  organization_id BIGINT REFERENCES organizations(id) DEFAULT 1,
+  organization_id BIGINT REFERENCES organizations(id) ON DELETE SET DEFAULT DEFAULT 1,
   work_experience_level work_experience_level DEFAULT 'intern',
   work_contract_type work_contract_type DEFAULT 'full_time',
   salary salary_detail,

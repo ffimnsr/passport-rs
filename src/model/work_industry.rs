@@ -18,7 +18,10 @@ pub type WorkIndustries = Vec<WorkIndustry>;
 
 #[allow(dead_code)]
 impl WorkIndustry {
-    pub async fn list(conn: &mut PgConnection, opt: Option<PaginationParams>) -> sqlx::Result<WorkIndustries> {
+    pub async fn list(
+        conn: &mut PgConnection,
+        opt: Option<PaginationParams>,
+    ) -> sqlx::Result<WorkIndustries> {
         let query = "SELECT * FROM work_industries".to_string();
         let query = opt.map(|x| x.paginate_query(query.clone())).unwrap_or(query);
         let data = sqlx::query_as::<_, WorkIndustry>(&query).fetch_all(conn).await?;

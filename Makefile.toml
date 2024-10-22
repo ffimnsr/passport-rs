@@ -13,7 +13,7 @@ command = "systemfd"
 args = [
   "--no-pid",
   "-s",
-  "http::5000",
+  "http::6050",
   "--",
   "cargo",
   "watch",
@@ -34,7 +34,6 @@ args = [
   "cargo",
   "watch",
   "--no-vcs-ignores",
-  "--watch-when-idle",
   "-w",
   ".trigger",
   "-x",
@@ -46,12 +45,15 @@ dependencies = ["install-systemfd", "install-cargo-watch"]
 command = "cargo"
 args = [
   "watch",
-  "--no-vcs-ignores",
   "--watch-when-idle",
+  "-d",
+  "6",
   "-w",
   "src",
   "-x",
   "check",
+  "-x",
+  "build",
   "--",
   "touch",
   ".trigger",

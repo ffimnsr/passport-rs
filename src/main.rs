@@ -57,36 +57,38 @@ async fn main() -> io::Result<()> {
             .error_handler(json_error_handler)
             .limit(4096);
         let pool = web::Data::new(pool.clone());
+        let cors_rule = Cors::default()
+            .allowed_origin("http://localhost:8000")
+            .allowed_origin_fn(|origin, _req_head| {
+                origin.as_bytes().ends_with(b".sesame-landing-ifn4.pages.dev")
+                    || origin.as_bytes().ends_with(b".se-same.com")
+            })
+            .allowed_methods(vec!["GET", "POST"])
+            .allowed_headers(vec![header::AUTHORIZATION, header::ACCEPT, header::CONTENT_TYPE])
+            .supports_credentials()
+            .max_age(3600);
+
         App::new()
             .app_data(pool)
             .app_data(json_cfg)
             .wrap(middleware::Compress::default())
             .wrap(middleware::Logger::default())
-            .wrap(
-                Cors::default()
-                    .allowed_origin("http://localhost:8000")
-                    .allowed_origin_fn(|origin, _req_head| {
-                        origin.as_bytes().ends_with(b".sesame-landing-ifn4.pages.dev")
-                            || origin.as_bytes().ends_with(b".se-same.com")
-                    })
-                    .allowed_methods(vec!["GET", "POST"])
-                    .allowed_headers(vec![header::AUTHORIZATION, header::ACCEPT, header::CONTENT_TYPE])
-                    .supports_credentials()
-                    .max_age(3600),
-            )
+            .wrap(cors_rule)
             .service(index)
-            .service(web::resource("/search-jobs").route(web::get().to(api::search_jobs)))
-            .service(web::resource("/jobs-minimal").route(web::get().to(api::get_all_jobs_minimal)))
-            .service(web::resource("/jobs").route(web::get().to(api::get_all_jobs)))
-            .service(web::resource("/jobs/{id}").route(web::get().to(api::get_job)))
-            .service(web::resource("/countries").route(web::get().to(api::get_all_countries)))
-            .service(web::resource("/orgs").route(web::get().to(api::get_all_organizations)))
-            .service(web::resource("/orgs/{id}").route(web::get().to(api::get_organization)))
-            .service(web::resource("/work/functions").route(web::get().to(api::get_all_work_functions)))
-            .service(web::resource("/work/industries").route(web::get().to(api::get_all_work_industries)))
-            .service(web::resource("/mgmt/jobs").route(web::post().to(api::create_job)))
-            .service(web::resource("/mgmt/jobs/{id}").route(web::delete().to(api::delete_job)))
+            .service(api::search_jobs)
+            .service(api::get_all_jobs_minimal)
+            .service(api::get_all_jobs)
+            .service(api::get_job)
+            .service(api::get_all_countries)
+            .service(api::get_all_organizations)
+            .service(api::get_organization)
+            .service(api::get_all_work_functions)
+            .service(api::get_all_work_industries)
+            .service(api::create_job)
+            .service(api::update_job)
+            .service(api::delete_job)
             .service(api::create_fake_job)
+            .service(api::create_n_amount_of_fake_job)
             .service(web::resource("/version").guard(guard::Get()).to(api::version))
             .service(web::resource("/health").guard(guard::Get()).to(api::health_check))
             .default_service(web::to(default_handler))
@@ -96,7 +98,7 @@ async fn main() -> io::Result<()> {
     let port: u16 = env::var("PORT")
         .unwrap_or_else(|_| "8000".to_string())
         .parse()
-        .expect("PORT must be a number");
+        .expect("PORT must be a number between 0 and 65535");
 
     let server = if is_dev {
         let mut listenfd = ListenFd::from_env();

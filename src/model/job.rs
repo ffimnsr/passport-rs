@@ -1,8 +1,14 @@
 use chrono::{DateTime, Utc};
 use cuid2::cuid;
 use serde::{Deserialize, Serialize};
+use sqlx::query_builder::QueryBuilder;
 use sqlx::PgConnection;
+use sqlx::Postgres;
 use validator::Validate;
+use fake::Dummy;
+use fake::faker::company::en::Profession;
+use fake::faker::lorem::en::Paragraph;
+
 
 use super::clean_input;
 use super::PaginationParams;
@@ -56,12 +62,30 @@ pub enum JobStatus {
     Closed = 0,
 }
 
-#[derive(Debug, Validate, Deserialize, Serialize)]
+#[derive(Debug, Validate, Dummy, Deserialize, Serialize)]
 pub struct NewJob {
+    #[dummy(faker = "Profession()")]
     #[validate(length(min = 5, max = 300))]
     pub title: String,
+    #[dummy(faker = "Paragraph(1..40)")]
     #[validate(length(min = 10))]
     pub description: String,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct UpdateJob {
+    pub title: Option<String>,
+    pub description: Option<String>,
+    pub industry_id: Option<i32>,
+    pub country_id: Option<i32>,
+    pub organization_id: Option<i64>,
+    pub work_experience_level: Option<ExperienceLevel>,
+    pub work_contract_type: Option<ContractType>,
+    pub salary: Option<SalaryDetail>,
+    pub has_timetracker: Option<bool>,
+    pub is_remote: Option<bool>,
+    pub is_featured: Option<bool>,
+    pub status: Option<JobStatus>,
 }
 
 #[derive(Debug, Deserialize, Serialize, sqlx::FromRow)]
@@ -126,6 +150,44 @@ impl Job {
         Ok(row.0)
     }
 
+    pub async fn update_with_id(conn: &mut PgConnection, id: &str, data: UpdateJob) -> sqlx::Result<()> {
+        let mut query_builder: QueryBuilder<Postgres> = QueryBuilder::new("UPDATE jobs SET ");
+        let mut separated = query_builder.separated(", ");
+
+        macro_rules! append_field {
+            ($field_name:ident) => {
+                if let Some(value) = data.$field_name {
+                    let q = format!(concat!(stringify!($field_name), " = "));
+                    separated.push(q);
+                    separated.push_bind_unseparated(value);
+                }
+            };
+        }
+
+        append_field!(title);
+        append_field!(description);
+        append_field!(industry_id);
+        append_field!(country_id);
+        append_field!(organization_id);
+        append_field!(work_experience_level);
+        append_field!(work_contract_type);
+        append_field!(salary);
+        append_field!(has_timetracker);
+        append_field!(is_remote);
+        append_field!(is_featured);
+        append_field!(status);
+
+        query_builder.push(" WHERE id = ");
+        query_builder.push_bind(id);
+
+        // let s = query_builder.into_sql();
+        // log::info!("Query: {:?}", s);
+
+        let query = query_builder.build();
+        query.execute(conn).await?;
+        Ok(())
+    }
+
     pub async fn delete_with_id(conn: &mut PgConnection, id: &str) -> sqlx::Result<()> {
         sqlx::query("DELETE FROM jobs WHERE id = $1")
             .bind(id)
@@ -138,9 +200,9 @@ impl Job {
 #[cfg(test)]
 mod tests {
     use indoc::indoc;
-    use sqlx::{Executor, PgPool};
-    use sqlx::postgres::PgQueryResult;
     use sqlx::error::Error;
+    use sqlx::postgres::PgQueryResult;
+    use sqlx::{Executor, PgPool};
 
     use super::*;
 
