@@ -5,6 +5,10 @@ edition = "2021"
 default-run = "announcer"
 publish = false
 
+[lib]
+name = "passport_tg"
+path = "src/lib.rs"
+
 [[bin]]
 name = "announcer"
 path = "src/announcer/bin/main.rs"
