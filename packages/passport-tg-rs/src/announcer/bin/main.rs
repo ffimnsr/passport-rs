@@ -145,18 +145,18 @@ fn action_url(url: &str, job_id: &str) -> Url {
 
 fn convert_to_url(s: &str) -> Url {
     Url::from_str(s)
-        .unwrap_or_else(|_| Url::parse("https://t.me/@JobSesameBot").unwrap())
+        .unwrap_or_else(|_| Url::parse("https://t.me/JobSesameBot").unwrap())
 }
 
 fn make_post_options(job_id: &str) -> InlineKeyboardMarkup {
     let mut keyboard: Vec<Vec<InlineKeyboardButton>> = vec![];
 
     let action_buttons = [
-        ("See Details 🔍", action_url("https://t.me/@JobSesameBot/app?startapp=view", job_id)),
-        ("Save ➕", action_url("https://t.me/@JobSesameBot?start=save", job_id)),
-        ("Forward ⏩", action_url("https://t.me/@JobSesameBot?start=forward", job_id)),
-        ("Help ❓", action_url("https://t.me/@JobSesameBot/app?start=help", job_id)),
-        ("Apply Now ✅", action_url("https://t.me/@JobSesameBot/app?startapp=apply", job_id)),
+        ("See Details 🔍", action_url("https://t.me/JobSesameBot/app?startapp=view", job_id)),
+        ("Save ➕", action_url("https://t.me/JobSesameBot?start=save", job_id)),
+        ("Forward ⏩", action_url("https://t.me/JobSesameBot?start=forward", job_id)),
+        ("Help ❓", action_url("https://t.me/JobSesameBot/app?start=help", job_id)),
+        ("Apply Now ✅", action_url("https://t.me/JobSesameBot/app?startapp=apply", job_id)),
     ];
 
     for buttons in action_buttons.chunks(2) {

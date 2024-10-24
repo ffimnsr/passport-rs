@@ -1,0 +1,25 @@
+[package]
+name = "passport-landing-rs"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+chrono = { version = "0.4.38", features = ["serde"] }
+gloo-net = "0.6.0"
+serde = { version = "1.0.213", features = ["derive"] }
+serde_json = "1.0.132"
+url = "2.5.2"
+wasm-bindgen-futures = "0.4.45"
+web-sys = { version = "0.3.72", features = ["console", "HtmlElement", "MouseEvent"] }
+yew = { version = "0.21.0", features = ["csr"] }
+yew-router = "0.18.0"
+
+[profile.release]
+# less code to include into binary
+panic = 'abort'
+# optimization over all codebase ( better optimization, slower build )
+codegen-units = 1
+# optimization for size ( more aggressive )
+opt-level = 'z'
+# link time optimization using using whole-program analysis
+lto = true
