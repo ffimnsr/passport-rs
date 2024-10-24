@@ -10,6 +10,5 @@ EXECUTE FUNCTION moddatetime(updated_at);
 
 -- !DOWN
 
-DROP TRIGGER IF EXISTS
-  tr_mod_updated_at ON jobs;
+DROP TRIGGER IF EXISTS tr_mod_updated_at ON jobs;
 DROP EXTENSION moddatetime;

@@ -1,12 +1,13 @@
 use anyhow::Context;
-use passport_tg::db;
-use sqlx::{any, pool, postgres::PgListener, PgPool};
+use chrono::{DateTime, Utc};
+use passport_tg::{db, model::{job::DetailedJob, pubsub_job_announcement::{PubsubJobAnnouncement, PubsubMessageStatus, SaveMessageIdProps}}};
+use sqlx::{postgres::PgListener, PgPool};
 use teloxide::{
-    dispatching::dialogue::GetChatId, prelude::*, types::{InlineKeyboardButton, InlineKeyboardMarkup, InputFile, ParseMode}, utils
+    prelude::*, types::{InlineKeyboardButton, InlineKeyboardMarkup, InputFile, ParseMode}, utils
 };
 use url::Url;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt, EnvFilter};
-use axum::{response::IntoResponse, routing::get, Router, http::StatusCode};
+use axum::{http::StatusCode, response::{IntoResponse, Response}, routing::get, Router};
 use tokio::{net::TcpListener, signal, sync::Mutex};
 use std::{env, str::FromStr};
 use std::sync::Arc;
@@ -35,11 +36,23 @@ impl AnnouncerApp {
             }
         });
 
+        let mut pending_interval = tokio::time::interval(tokio::time::Duration::from_secs(20));
         loop {
             tokio::select! {
                 _ = shutdown_signal() => {
                     log::info!("Shutting down announcer server...");
                     break;
+                }
+                _ = pending_interval.tick() => {
+                    log::info!("Checking for some pending messages...");
+                    if let Ok(announcement) = self.get_pending_announcement().await {
+                        let mut messages = self.messages.lock().await;
+                        if messages.contains(&announcement.job_id) {
+                            continue;
+                        }
+
+                        messages.push(announcement.job_id);
+                    }
                 }
                 _ = tokio::time::sleep(tokio::time::Duration::from_secs(3)) => {
                     log::info!("Checking for new messages...");
@@ -50,19 +63,119 @@ impl AnnouncerApp {
                         .map(|m| m.to_owned())
                         .collect();
 
-                    for message in messages {
-                        log::info!("Message: {}", message);
+                    for job_id in messages {
+                        log::info!("Message: {}", job_id);
+                        let job = self.find_job_details(&job_id)
+                            .await
+                            .context(format!("No job found with id: {job_id:#?}"))?;
+                        let message_id = self.message_channel(&job).await?;
+                        self.save_message_id(&job_id, message_id).await?;
                     }
+
+                    self.messages.lock().await.clear();
                 }
             }
         }
 
         Ok(())
     }
+
+    async fn find_job_details(&self, job_id: &str) -> anyhow::Result<DetailedJob> {
+        let job = DetailedJob::get_with_id(&self.pool, job_id).await?;
+        Ok(job)
+    }
+
+    async fn save_message_id(&self, job_id: &str, message_id: i32) -> anyhow::Result<()> {
+        PubsubJobAnnouncement::save_message_id(&self.pool, job_id, SaveMessageIdProps {
+            message_id: Some(message_id),
+            message_status: Some(PubsubMessageStatus::Delivered),
+            delivered_at: DateTime::from(Utc::now()).into(),
+        }).await?;
+        Ok(())
+    }
+
+    async fn get_pending_announcement(&self) -> anyhow::Result<PubsubJobAnnouncement> {
+        let announcement = PubsubJobAnnouncement::get_pending_announcement(&self.pool).await?;
+        PubsubJobAnnouncement::increment_announcement_delivery_attempt(&self.pool, &announcement.job_id).await?;
+        Ok(announcement)
+    }
+
+    async fn message_channel(&self, job: &DetailedJob) -> anyhow::Result<i32> {
+        let keyboard: InlineKeyboardMarkup = make_post_options(&job.id);
+
+        let channel_id = "@jobsesame".to_string();
+        let channel_url = utils::markdown::link("https://t.me/jobsesame", "Remote Jobs by Sesame");
+        let company_image_url = Url::from_str(&job.organization_image_url()).unwrap();
+        let company_name = utils::markdown::bold(&job.organization_name);
+        let company_one_liner = utils::markdown::escape(&job.organization_description());
+        let company_url = utils::markdown::link(&job.organization_website_url(), "company's website");
+        let job_position = utils::markdown::bold(&job.title());
+        let job_location = utils::markdown::escape(&job.is_remote_text());
+        let job_contract_type = utils::markdown::escape(&job.contract_type());
+        let message = indoc::formatdoc! {"
+            👉 {company_name} is hiring\\! 👈
+
+            {company_one_liner}
+
+            Position: {job_position}
+
+            Location: 📍 {job_location}
+            Type: 🕒 {job_contract_type}
+
+            Apply directly on the {company_url} or through JobSesame WebApp 👇\\.
+
+            Stay ahead in your career\\! Subscribe to {channel_url} and never miss an update\\! 🚀
+        "};
+
+        let image = InputFile::url(company_image_url);
+
+        let post_msg = self.bot.send_photo(channel_id, image)
+            .caption(message)
+            .parse_mode(ParseMode::MarkdownV2)
+            .reply_markup(keyboard)
+            .await?;
+        Ok(post_msg.id.0)
+    }
 }
 
-async fn health_check() -> &'static str {
-    "I'm alive!"
+fn action_url(url: &str, job_id: &str) -> Url {
+    let temp = format!("{url}_{job_id}");
+    convert_to_url(&temp)
+}
+
+fn convert_to_url(s: &str) -> Url {
+    Url::from_str(s)
+        .unwrap_or_else(|_| Url::parse("https://t.me/@JobSesameBot").unwrap())
+}
+
+fn make_post_options(job_id: &str) -> InlineKeyboardMarkup {
+    let mut keyboard: Vec<Vec<InlineKeyboardButton>> = vec![];
+
+    let action_buttons = [
+        ("See Details 🔍", action_url("https://t.me/@JobSesameBot/app?startapp=view", job_id)),
+        ("Save ➕", action_url("https://t.me/@JobSesameBot?start=save", job_id)),
+        ("Forward ⏩", action_url("https://t.me/@JobSesameBot?start=forward", job_id)),
+        ("Help ❓", action_url("https://t.me/@JobSesameBot/app?start=help", job_id)),
+        ("Apply Now ✅", action_url("https://t.me/@JobSesameBot/app?startapp=apply", job_id)),
+    ];
+
+    for buttons in action_buttons.chunks(2) {
+        let row = buttons
+            .iter()
+            .map(|(name, url)| InlineKeyboardButton::url(name.to_owned(), url.to_owned()))
+            .collect();
+
+        keyboard.push(row);
+    }
+
+    InlineKeyboardMarkup::new(keyboard)
+}
+
+async fn health_check() -> impl IntoResponse {
+    Response::builder()
+        .status(StatusCode::OK)
+        .body(())
+        .unwrap();
 }
 
 async fn handler_404() -> impl IntoResponse {
@@ -93,10 +206,11 @@ async fn shutdown_signal() {
     }
 }
 
-async fn start_health_check_server() -> anyhow::Result<()> {
+async fn start_health_check_server(pool: &PgPool) -> anyhow::Result<()> {
     let app = Router::new()
         .route("/health", get(health_check))
-        .fallback(handler_404);
+        .fallback(handler_404)
+        .with_state(pool.to_owned());
 
     let listener = TcpListener::bind("0.0.0.0:3000").await?;
     log::debug!("Listening on: {}", listener.local_addr()?);
@@ -128,7 +242,7 @@ async fn main() -> anyhow::Result<()> {
     let bot = Bot::from_env();
 
     let announcer_server = async {
-        let app = AnnouncerApp::new(pool, bot);
+        let app = AnnouncerApp::new(pool.clone(), bot);
         let res = app.run(listener).await;
 
         if let Err(e) = res {
@@ -136,83 +250,6 @@ async fn main() -> anyhow::Result<()> {
         }
     };
 
-    let _ = tokio::join!(announcer_server, start_health_check_server());
-
-    // let handler = dptree::entry()
-    //     .inspect(|u: Update| {
-    //         log::info!("Update {u:#?}");
-    //     })
-    //     .branch(Update::filter_message().endpoint(message_handler));
-    //     // .branch(
-    //     //     Update::filter_chat_member()
-    //     //         .branch(
-    //     //             dptree::filter(|m: ChatMemberUpdated| {
-    //     //                 m.old_chat_member.is_left() && m.new_chat_member.is_member()
-    //     //             })
-    //     //             .endpoint(new_chat_member),
-    //     //         )
-    //     //         .branch(
-    //     //             dptree::filter(|m: ChatMemberUpdated| {
-    //     //                 m.old_chat_member.is_member() && m.new_chat_member.is_left()
-    //     //             })
-    //     //             .endpoint(left_chat_member),
-    //     //         )
-    //     // );
-
-    // Dispatcher::builder(bot, handler)
-    //     .enable_ctrlc_handler()
-    //     .build()
-    //     .dispatch()
-    //     .await;
-
+    let _ = tokio::join!(announcer_server, start_health_check_server(&pool));
     Ok(())
-}
-
-async fn message_handler(bot: Bot, msg: Message) -> anyhow::Result<()> {
-    let keyboard: InlineKeyboardMarkup = make_post_options();
-    // bot.send_message("@jobsesame".to_string(), "Debian versions:")
-    let image_url = Url::from_str("https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/Stack_Overflow_logo.svg/200px-Stack_Overflow_logo.svg.png").unwrap();
-    let company_name = utils::markdown::bold("Company");
-    let company_one_liner = utils::markdown::escape("Company one-liner.");
-    let job_position = utils::markdown::bold("Software Engineer");
-    let message = indoc::formatdoc! {"
-        {company_name} is hiring\\!
-
-        {company_one_liner}
-
-        Position: {job_position}
-
-        Apply on the company's website or directly through JobSesame App 👇\\.
-
-        Subscribe to [Remote Jobs by Sesame](https://t.me/jobsesame) to not miss future updates\\!
-    "};
-
-    let image = InputFile::url(image_url);
-
-    bot.send_photo(msg.chat.id, image)
-        .caption(message)
-        .parse_mode(ParseMode::MarkdownV2)
-        .reply_markup(keyboard)
-        .await?;
-    Ok(())
-}
-
-fn make_post_options() -> InlineKeyboardMarkup {
-    let mut keyboard: Vec<Vec<InlineKeyboardButton>> = vec![];
-
-    let debian_versions = [
-        "Apply", "Help", "", "Hamm",
-    ];
-
-    let uri = Url::from_str("https://t.me/@JobSesameBot").unwrap();
-    for versions in debian_versions.chunks(2) {
-        let row = versions
-            .iter()
-            .map(|&version| InlineKeyboardButton::url(version.to_owned(), uri.to_owned()))
-            .collect();
-
-        keyboard.push(row);
-    }
-
-    InlineKeyboardMarkup::new(keyboard)
 }

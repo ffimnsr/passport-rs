@@ -10,6 +10,7 @@ pub async fn init_pool(database_url: &str) -> sqlx::Result<PgPool> {
         .await
 }
 
+#[allow(dead_code)]
 async fn notify(pool: &PgPool, s: &str) -> sqlx::Result<()> {
     sqlx::query(
         r#"
